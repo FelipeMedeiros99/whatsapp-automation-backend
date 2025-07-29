@@ -1,6 +1,8 @@
 import { Message, Client } from 'whatsapp-web.js';
 import { defaultMessages } from './const';
 import { sleep } from '../tools/timeFunctions';
+// import { getMessageByTitle } from '../config';
+// import { DefaultMessage } from '../generated/prisma';
 
 // const { LocalAuth } = Whatsapp;
 
@@ -56,9 +58,10 @@ class WhatsappService {
   }
 
   async connect(): Promise<string> {
-    if (!this.client.info) {
-      await this.client.initialize();
-    }
+    await this.client.initialize();
+
+    // if (!this.client.info) {
+    // }
 
     return new Promise((resolve) => {
       const checkQrCode = setInterval(() => {
@@ -73,16 +76,16 @@ class WhatsappService {
   public async generateAnoterQrCode() {
     if (this.client) {
       await this.client.destroy();
-      this.setupListeners();
+      return await this.connect()
     }
   }
 
+  // public async getMessage(title: string){
+  //   return getMessageByTitle(title)
+  // }
+
   public getStatus() {
     return { isLoged: this.isAuthenticated };
-  }
-
-  public getMessages() {
-    return this.messages;
   }
 
   private async sendingMessages(message: Message) {
