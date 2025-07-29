@@ -1,5 +1,6 @@
 import { Message, Client } from 'whatsapp-web.js';
 import { defaultMessages } from './const';
+import { sleep } from '../tools/timeFunctions';
 
 // const { LocalAuth } = Whatsapp;
 
@@ -86,45 +87,53 @@ class WhatsappService {
 
   private async sendingMessages(message: Message) {
     const isMe = message.id.fromMe;
-    const contentMessage = message.body.toLowerCase().trim();
+    const contentMessage = message.body;
     const messageTo = message.to;
     const messageFrom = message.from;
 
-    console.log({ isMe, contentMessage, messageFrom })
+    // console.log({ isMe, contentMessage, messageFrom })
 
-    const send = async (text: string) => {
-      await this.client.sendMessage(messageFrom, text)
+    const send = async (text: string, number: string = messageFrom) => {
+      await this.client.sendMessage(number, text)
     }
 
     const desactiveResponse = (number: string) => {
       this.users[number] = { ...this.users[number], isBotStoped: true }
     }
 
-    const activeResponse = () => {
-      if (this.users[messageFrom]) delete this.users[messageFrom]
+    const activeResponse = (number:string) => {
+      if (this.users[number]) delete this.users[number]
     }
 
     const checkInterruption = () => {
       let isInterruption = true;
       for (let key in defaultMessages) {
-
         if (defaultMessages[key] === contentMessage) {
-          isInterruption = false
-          break
+          isInterruption = false;
+          break;
         }
       }
-      console.log("é interrupção?: ", isInterruption)
-      if (isInterruption) {
-        desactiveResponse(messageTo)
-      }
+      if (isInterruption) desactiveResponse(messageTo)
 
     }
 
     if (isMe) checkInterruption();
 
-    if (isMe && contentMessage === defaultMessages.finish) activeResponse();
+    if (isMe && contentMessage === defaultMessages.finish) {
+      activeResponse(messageTo);
+    }
 
-    if (isMe && contentMessage === defaultMessages.reserved) await send(defaultMessages?.info);
+    if (isMe && contentMessage === defaultMessages.reserved) {
+      await sleep(1000)
+      await send(defaultMessages?.info, messageTo);
+      await sleep(1000)
+      await send(defaultMessages?.promotional)
+      await sleep(1000)
+      await send(defaultMessages?.finish)
+      activeResponse(messageTo)
+    }
+
+    // && messageFrom.includes("559891402255")
 
     if (!isMe && messageFrom.includes("@c.us") && messageFrom.includes("559891402255")) {
 
@@ -139,42 +148,44 @@ class WhatsappService {
       if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false });
 
       if (!this.users[messageFrom].isBotStoped) {
-        switch (contentMessage) {
+        switch (contentMessage.trim()) {
           case "1":
             await send(defaultMessages?.tariffs);
-            await send(defaultMessages?.promotional)
-            await send(defaultMessages?.menu)
+            await send(defaultMessages?.promotional);
+            await sleep(3000)
+            await send(defaultMessages?.menu);
             break
 
           case "2":
             await send(defaultMessages?.info);
+            await sleep(3000)
             await send(defaultMessages?.menu);
             break;
 
           case "3":
             await send(defaultMessages?.reservation);
-            desactiveResponse(messageFrom)
+            desactiveResponse(messageFrom);
             break
 
           case "4":
             await send(defaultMessages?.localization);
+            await sleep(3000)
             await send(defaultMessages?.menu);
             break;
 
           case "5":
-            await send(defaultMessages?.invoice)
-            desactiveResponse(messageFrom)
+            await send(defaultMessages?.invoice);
+            desactiveResponse(messageFrom);
             break
 
           case "6":
             await send(defaultMessages?.wait);
-            desactiveResponse(messageFrom)
+            desactiveResponse(messageFrom);
             break
 
           default:
-            await send(defaultMessages?.start)
+            await send(defaultMessages?.start);
             break;
-
         }
       }
     }
