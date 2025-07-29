@@ -6,6 +6,6 @@ services:
     container_name: automation-whatsapp
     ports:
       - "${PORT}:5002"
-    environment:
-      - PORT=${PORT}
+    env_file:
+      - .env
     restart: always
