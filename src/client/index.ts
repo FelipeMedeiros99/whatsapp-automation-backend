@@ -51,7 +51,7 @@ class WhatsappService {
           delete this.users[key]
         }
       }
-    }, 60 * 60)
+    }, 60 * 60 * 1000)
   }
 
   async connect(): Promise<string> {
@@ -87,6 +87,7 @@ class WhatsappService {
   private async sendingMessages(message: Message) {
     const isMe = message.id.fromMe;
     const contentMessage = message.body.toLowerCase().trim();
+    const messageTo = message.to;
     const messageFrom = message.from;
 
     console.log({ isMe, contentMessage, messageFrom })
@@ -95,17 +96,35 @@ class WhatsappService {
       await this.client.sendMessage(messageFrom, text)
     }
 
-    const desactiveResponse = () => {
-      if (this.users[messageFrom]) this.users[messageFrom] = ({ ...this.users[messageFrom], isBotStoped: true })
+    const desactiveResponse = (number: string) => {
+      this.users[number] = { ...this.users[number], isBotStoped: true }
     }
 
     const activeResponse = () => {
       if (this.users[messageFrom]) delete this.users[messageFrom]
     }
 
-    if (isMe && contentMessage ===  defaultMessages.finish) activeResponse();
+    const checkInterruption = () => {
+      let isInterruption = true;
+      for (let key in defaultMessages) {
 
-    if (isMe && contentMessage === defaultMessages.reserved) await send(defaultMessages?.info)
+        if (defaultMessages[key] === contentMessage) {
+          isInterruption = false
+          break
+        }
+      }
+      console.log("é interrupção?: ", isInterruption)
+      if (isInterruption) {
+        desactiveResponse(messageTo)
+      }
+
+    }
+
+    if (isMe) checkInterruption();
+
+    if (isMe && contentMessage === defaultMessages.finish) activeResponse();
+
+    if (isMe && contentMessage === defaultMessages.reserved) await send(defaultMessages?.info);
 
     if (!isMe && messageFrom.includes("@c.us") && messageFrom.includes("559891402255")) {
 
@@ -134,7 +153,7 @@ class WhatsappService {
 
           case "3":
             await send(defaultMessages?.reservation);
-            desactiveResponse()
+            desactiveResponse(messageFrom)
             break
 
           case "4":
@@ -144,12 +163,12 @@ class WhatsappService {
 
           case "5":
             await send(defaultMessages?.invoice)
-            desactiveResponse()
+            desactiveResponse(messageFrom)
             break
 
           case "6":
             await send(defaultMessages?.wait);
-            desactiveResponse()
+            desactiveResponse(messageFrom)
             break
 
           default:

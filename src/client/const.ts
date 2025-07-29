@@ -4,7 +4,7 @@
 // 5️⃣  —   
 // 6️⃣  — 
 
-export const defaultMessages = {
+export const defaultMessages: {[key: string]: string} = {
   start: `Olá! 👋 Seja bem-vindo ao Gree Hotel.
 
 Como posso te ajudar hoje?
@@ -32,18 +32,18 @@ Digite o número correspondente à opção desejada. 😊
 
   tariffs: `🏨 Tarifas de Hospedagem 🏨
 
-- 1 pessoa – R$ 220,00 (1 cama de casal)
+- *1 pessoa* – R$ 220,00 (1 cama de casal)
 
-- 2 pessoas – R$ 260,00 (1 ou 2 camas de casal)
+- *2 pessoas* – R$ 260,00 (1 ou 2 camas de casal)
 
-- 3 pessoas – R$ 320,00 (2 camas de casal)
+- *3 pessoas* – R$ 320,00 (2 camas de casal)
 
-- 4 pessoas – R$ 380,00 (2 camas de casal)
+- *4 pessoas* – R$ 380,00 (2 camas de casal)
 
 Obs1: Crianças de até 3 anos não pagam.
 Obs2: O valor da hospedagem varia conforme a quantidade de hóspedes.`,
 
-  promotional: `Desconto de R$ 20,00 em cada diária para pagamento em dinheiro em espécie.`,
+  promotional: `*Desconto de R$ 20,00* em cada diária para pagamento com *dinheiro em espécie.*`,
 
   info: `
 🏨 Informativos do Gree Hotel 🏨
