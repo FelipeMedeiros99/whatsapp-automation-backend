@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+
+  node-application:
+    build: .
+    container_name: automation-whatsapp
+    ports:
+      - "${PORT}:5002"
+    environment:
+      - PORT=${PORT}
+    restart: always

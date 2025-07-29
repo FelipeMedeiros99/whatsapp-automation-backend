@@ -3,7 +3,7 @@
     "moduleResolution": "node",
     "lib": ["ES2023"],
     "target": "ES2022",
-    "module": "ES6",
+    "module": "esnext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,

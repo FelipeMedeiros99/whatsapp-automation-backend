@@ -1,6 +1,6 @@
 import { Message, Client } from 'whatsapp-web.js';
-import { defaultMessages } from './const';
-import { sleep } from '../tools/timeFunctions';
+import { defaultMessages } from './const.js';
+import { sleep } from '../tools/timeFunctions.js';
 // import { getMessageByTitle } from '../config';
 // import { DefaultMessage } from '../generated/prisma';
 
