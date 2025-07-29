@@ -4,71 +4,98 @@
 // 5️⃣  —   
 // 6️⃣  — 
 
-export const startMessage = `Olá! 👋 Seja bem-vindo ao Gree Hotel.
+export const defaultMessages = {
+  start: `Olá! 👋 Seja bem-vindo ao Gree Hotel.
 
 Como posso te ajudar hoje?
 
 1  — Tarifários
 2  — Informativos
-3  — Reservas
+3  — Nova Reserva
 4  — Localização
-5  — Falar com um atendente
+5  — Solicitar Nota Fiscal
+6  — Falar com atendente
 
 Digite o número correspondente à opção desejada. 😊
-`
+`,
 
-export const menuMessage = `
+  menu: `
 1  — Tarifários
 2  — Informativos
 3  — Nova Reserva
 4  — Localização
-5  — Falar com um atendente
+5  — Solicitar Nota Fiscal
+6  — Falar com atendente
 
 Digite o número correspondente à opção desejada. 😊
-`
+`,
 
-export const tariffs = `Tarifas de hospedagem
+  tariffs: `🏨 Tarifas de Hospedagem 🏨
 
-- Quarto para 1 pessoa R$ 220,00
-(1 cama de casal)
+- 1 pessoa – R$ 220,00 (1 cama de casal)
 
-- ⁠Quarto para 2 pessoas R$ 260,00
-(1 ou 2 camas de casal)
+- 2 pessoas – R$ 260,00 (1 ou 2 camas de casal)
 
-- Quarto para 3 pessoas - R$ 320,00
-(2 camas de casal)
+- 3 pessoas – R$ 320,00 (2 camas de casal)
 
-- Quarto para 4 pessoas - R$ 380,00
-(2 camas de casal)
+- 4 pessoas – R$ 380,00 (2 camas de casal)
 
-_Obs: Crianças de até 3 anos não pagam._
-`
+Obs1: Crianças de até 3 anos não pagam.
+Obs2: O valor da hospedagem varia conforme a quantidade de hóspedes.`,
 
-export const info = `
-Informativos:
-- Café da manhã incluso.
-- Garagem rotativa - vagas limitadas
-- Crianças free até 3 anos.
-- Wifi.
-- Piscina - 6:00h as 18:00h.
-- ⁠Quartos triplos e quádruplos com 2 camas de casal
+  promotional: `Desconto de R$ 20,00 em cada diária para pagamento em dinheiro em espécie.`,
 
-Check-In: A partir das 14:00h
-Check-out: Até as 12:00h
+  info: `
+🏨 Informativos do Gree Hotel 🏨
 
-www.greehotel.com.br
+- Café da manhã incluso
+- Garagem rotativa (vagas limitadas)
+- Crianças até 3 anos não pagam
+- Wi-Fi gratuito
+- Piscina disponível das 6h às 18h
+- Quartos triplos e quádruplos com 2 camas de casal
+- Não aceitamos pets
 
-Canal direto para reservas de empresas: reservasgree@gmail.com
-`
+🕒 Check-In: A partir das 14h
+🕛 Check-Out: Até às 12h
 
-export const reservation = `Dados para reservar
+🌐 Site oficial: www.greehotel.com.br
+📩 Reservas corporativas: reservasgree@gmail.com
+`,
 
-Nome completo:
-CPF:
-Data de entranda:
-Data de saída:
-CEP:
-Qtd de Hóspedes: 
-`
+  reservation: `Para prosseguir com a reserva, por gentileza informe os seguintes dados:
+  
+- Nome completo:
+- CPF:
+- Data de entrada:
+- Data de saída:
+- Qtd de hóspedes:
 
-export const localization = `https://www.google.com/maps/place/Gree+Hotel/@-2.5119,-44.3034,17z/data=!4m9!3m8!1s0x7f68e97dc571bc5:0x97ff584fa674321!5m2!4m1!1i2!8m2!3d-2.511827!4d-44.3035966!16s%2Fg%2F1tjg_l8v?hl=en&entry=ttu&g_ep=EgoyMDI1MDcyMy4wIKXMDSoASAFQAw%3D%3D`
+Aguarde, nosso atendente já vai te atender 😊`,
+
+  localization: `https://maps.app.goo.gl/rzFsMDFvF6N8Bjt19
+Gree Hotel
+Av. Castelo Branco, 377 - São Francisco, São Luís - MA, 65076-090`,
+
+  wait: `Aguarde, nosso atendente já vai te atender 😊`,
+
+  invoice: `Para a emissão da nota fiscal, solicitamos as seguintes informações:
+
+Nome completo ou Razão Social:
+CPF ou CNPJ:
+Endereço completo:
+Período da hospedagem:
+Valor da hospedagem:
+
+Agradecemos pela colaboração.`,
+
+  reserved: `Reserva realizada com sucesso!
+
+Pagamento a ser realizado no ato do Check-In
+
+Esperamos por você, até mais!`,
+
+  finish: `Atendimento finalizado com sucesso.
+
+Agradecemos o seu contato e permanecemos à disposição. 😊`
+}

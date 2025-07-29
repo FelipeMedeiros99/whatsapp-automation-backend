@@ -1,11 +1,12 @@
-import { Client, Message } from 'whatsapp-web.js';
-import { info, localization, menuMessage, reservation, startMessage, tariffs } from './const';
+import { Message, Client } from 'whatsapp-web.js';
+import { defaultMessages } from './const';
 
+// const { LocalAuth } = Whatsapp;
 
-interface Users{
+interface Users {
   [key: string]: {
     timestamp: number;
-    isBotStoped: boolean;  
+    isBotStoped: boolean;
   }
 }
 
@@ -14,9 +15,10 @@ class WhatsappService {
   private qrCode: string | null = null;
   private isAuthenticated: boolean = false;
   private messages: Message[] = [];
-  private users:Users = {};
+  private users: Users = {};
 
   constructor() {
+    // this.client = new Client({ authStrategy: new LocalAuth() });
     this.client = new Client({});
     this.setupListeners()
   }
@@ -33,35 +35,13 @@ class WhatsappService {
     })
 
     this.client.on("ready", () => {
-
     })
 
     this.client.on("message_create", async (message) => {
-      const contentMessage = message.body.toLowerCase().trim();
-      if (!message.id.fromMe && message.from.includes("@c.us")) {
-        if (!this.users[message.from] as boolean) {
-          this.users[message.from] = ({ timestamp: message.timestamp, isBotStoped: false })
-        }
-        if (!this.users[message.from].isBotStoped) {
-          if (contentMessage === "1") {
-            await this.client.sendMessage(message.from, tariffs);
-            await this.client.sendMessage(message.from, menuMessage);
-          } else if (contentMessage === "2") {
-            await this.client.sendMessage(message.from, info);
-            await this.client.sendMessage(message.from, menuMessage);
-          } else if (contentMessage === "3") {
-            await this.client.sendMessage(message.from, reservation);
-            this.users[message.from] = ({ ...this.users[message.from], isBotStoped: true })
-          } else if (contentMessage === "4") {
-            await this.client.sendMessage(message.from, localization);
-            await this.client.sendMessage(message.from, menuMessage);
-          } else if (contentMessage === "5") {
-            await this.client.sendMessage(message.from, "Aguarde, em breve você será atendido!");
-            this.users[message.from] = ({ ...this.users[message.from], isBotStoped: true })
-          } else {
-            await this.client.sendMessage(message.from, startMessage)
-          }
-        }
+      try {
+        await this.sendingMessages(message)
+      } catch (e) {
+        console.log("Erro ao enviar mensagens: ", e)
       }
     })
 
@@ -89,7 +69,6 @@ class WhatsappService {
     });
   }
 
-
   public async generateAnoterQrCode() {
     if (this.client) {
       await this.client.destroy();
@@ -104,8 +83,85 @@ class WhatsappService {
   public getMessages() {
     return this.messages;
   }
+
+  private async sendingMessages(message: Message) {
+    const isMe = message.id.fromMe;
+    const contentMessage = message.body.toLowerCase().trim();
+    const messageFrom = message.from;
+
+    console.log({ isMe, contentMessage, messageFrom })
+
+    const send = async (text: string) => {
+      await this.client.sendMessage(messageFrom, text)
+    }
+
+    const desactiveResponse = () => {
+      if (this.users[messageFrom]) this.users[messageFrom] = ({ ...this.users[messageFrom], isBotStoped: true })
+    }
+
+    const activeResponse = () => {
+      if (this.users[messageFrom]) delete this.users[messageFrom]
+    }
+
+    if (isMe && contentMessage ===  defaultMessages.finish) activeResponse();
+
+    if (isMe && contentMessage === defaultMessages.reserved) await send(defaultMessages?.info)
+
+    if (!isMe && messageFrom.includes("@c.us") && messageFrom.includes("559891402255")) {
+
+
+      // 1  — Tarifários
+      // 2  — Informativos
+      // 3  — Reservas
+      // 4  — Localização
+      // 5  — Solicitar Nota Fiscal
+      // 6  — Falar com um atendente
+
+      if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false });
+
+      if (!this.users[messageFrom].isBotStoped) {
+        switch (contentMessage) {
+          case "1":
+            await send(defaultMessages?.tariffs);
+            await send(defaultMessages?.promotional)
+            await send(defaultMessages?.menu)
+            break
+
+          case "2":
+            await send(defaultMessages?.info);
+            await send(defaultMessages?.menu);
+            break;
+
+          case "3":
+            await send(defaultMessages?.reservation);
+            desactiveResponse()
+            break
+
+          case "4":
+            await send(defaultMessages?.localization);
+            await send(defaultMessages?.menu);
+            break;
+
+          case "5":
+            await send(defaultMessages?.invoice)
+            desactiveResponse()
+            break
+
+          case "6":
+            await send(defaultMessages?.wait);
+            desactiveResponse()
+            break
+
+          default:
+            await send(defaultMessages?.start)
+            break;
+
+        }
+      }
+    }
+  }
 }
 
 
 
-export const client = new WhatsappService()
+export const client = new WhatsappService() 
