@@ -22,7 +22,7 @@ class WhatsappService {
 
   constructor() {
     // this.client = new Client({ authStrategy: new LocalAuth() });
-    this.client = new Client({});
+    this.client = new Client({puppeteer:{headless: true, args: ['--no-sandbox']}});
     this.setupListeners()
   }
 

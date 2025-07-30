@@ -13,10 +13,13 @@ const port = process.env.PORT
 
 app.get("/whatsapp/connect/", async (req: Request, res: Response) => {
   try {
+    console.log("request to connect")
     const qrCode = await client.connect()
+    console.log("qr-code generated: ", qrCode)
     res.send(qrCode);
     return
   } catch (e) {
+    console.log("erro ao conectar: ", e)
     res.send(e).status(500)
     return
   }
