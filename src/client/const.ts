@@ -67,11 +67,11 @@ _Obs2: O valor da hospedagem varia conforme a quantidade de hóspedes._`,
 
   reservation: `Para prosseguir com a reserva, por gentileza informe os seguintes dados:
   
-- Nome completo:
-- CPF:
-- Data de entrada:
-- Data de saída:
-- Qtd de hóspedes:
+- _Nome completo:_
+- _CPF:_
+- _Data de entrada:_
+- _Data de saída:_
+- _Qtd de hóspedes:_
 `,
 
   localization: `*Endereço:* _Av. Castelo Branco, 377 - São Francisco, São Luís - MA, 65076-090_
@@ -98,7 +98,5 @@ _Obs: Prazo de *4 dias úteis* para envio da nota fiscal_`,
 
   more: "Podemos ajudar em algo mais?",
 
-  selectNumber: `Por gentileza, digite o número correspondente à opção desejada. 😊 
-
-*6 para falar com atendente*`,
+  selectNumber: `Por gentileza, digite o número correspondente à opção desejada. 😊 `,
 }
