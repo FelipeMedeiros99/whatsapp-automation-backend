@@ -20,12 +20,12 @@ Digite o número correspondente à opção desejada. 😊
 `,
 
   menu: `
-1 - Tarifários
-2 - Informativos
-3 - Nova Reserva
-4 - Localização
-5 - Solicitar Nota Fiscal
-6 - Falar com atendente
+1. *Tarifários*
+2. *Informativos*
+3. *Nova Reserva*
+4. *Localização*
+5. *Solicitar Nota Fiscal*
+6. *Falar com atendente*
 
 Digite o número correspondente à opção desejada. 😊
 `,
@@ -72,8 +72,7 @@ _Obs2: O valor da hospedagem varia conforme a quantidade de hóspedes._`,
 - Data de entrada:
 - Data de saída:
 - Qtd de hóspedes:
-
-Aguarde, nosso atendente já vai te atender 😊`,
+`,
 
   localization: `*Endereço:* _Av. Castelo Branco, 377 - São Francisco, São Luís - MA, 65076-090_
   
@@ -83,15 +82,13 @@ Aguarde, nosso atendente já vai te atender 😊`,
 
   invoice: `Para a emissão da nota fiscal, solicitamos as seguintes informações:
 
-- Nome completo ou Razão Social:
-- CPF ou CNPJ:
-- Endereço completo:
-- Período da hospedagem:
-- Valor da hospedagem:
+* *Nome completo* ou *Razão Social* :
+* *CPF* ou *CNPJ* :
+* *Endereço* completo:
+* *Período* da hospedagem:
+* *Valor* da hospedagem:
 
-_Obs: Prazo de 3 dias úteis para envio da nota fiscal_
-
-Aguarde, nosso atendente já vai te atender 😊`,
+_Obs: Prazo de *4 dias úteis* para envio da nota fiscal_`,
 
   reserved: `Reserva realizada com sucesso!
 
@@ -101,7 +98,7 @@ Aguarde, nosso atendente já vai te atender 😊`,
 
   more: "Podemos ajudar em algo mais?",
 
-  selectNumber: `Por gentileza, Digite o número correspondente à opção desejada. 😊 
+  selectNumber: `Por gentileza, digite o número correspondente à opção desejada. 😊 
 
 *6 para falar com atendente*`,
 }
