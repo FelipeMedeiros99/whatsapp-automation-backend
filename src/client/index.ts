@@ -202,7 +202,7 @@ class WhatsappService {
               await send(defaultMessages?.start);
             }else if(!this.users[messageFrom].menuAlredSent){
               this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: true}
-              await send(defaultMessages?.menu);
+              await send(defaultMessages?.selectNumber);
             }
             break;
         }

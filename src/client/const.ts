@@ -9,12 +9,12 @@ export const defaultMessages: {[key: string]: string} = {
 
 Como posso te ajudar hoje?
 
-1 - Tarifários
-2 - Informativos
-3 - Nova Reserva
-4 - Localização
-5 - Solicitar Nota Fiscal
-6 - Falar com atendente
+1. *Tarifários*
+2. *Informativos*
+3. *Nova Reserva*
+4. *Localização*
+5. *Solicitar Nota Fiscal*
+6. *Falar com atendente*
 
 Digite o número correspondente à opção desejada. 😊
 `,
@@ -99,5 +99,9 @@ Aguarde, nosso atendente já vai te atender 😊`,
 
   finish: `Atendimento finalizado com sucesso!`,
 
-  more: "Podemos ajudar em algo mais?"
+  more: "Podemos ajudar em algo mais?",
+
+  selectNumber: `Por gentileza, Digite o número correspondente à opção desejada. 😊 
+
+  *6 para falar com atendente*`,
 }
