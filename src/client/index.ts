@@ -156,6 +156,7 @@ class WhatsappService {
     }
 
     if (isMe && contentMessage === defaultMessages.reserved) {
+        this.users[messageTo] = {...this.users[messageTo], menuAlredSent: true};
         await sleep(smallTime);
         await send(defaultMessages?.info, messageTo);
         await sleep(smallTime);
