@@ -103,5 +103,5 @@ Aguarde, nosso atendente já vai te atender 😊`,
 
   selectNumber: `Por gentileza, Digite o número correspondente à opção desejada. 😊 
 
-  *6 para falar com atendente*`,
+*6 para falar com atendente*`,
 }
