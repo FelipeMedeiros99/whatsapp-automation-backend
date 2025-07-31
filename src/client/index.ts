@@ -185,12 +185,14 @@ class WhatsappService {
             await send(defaultMessages?.promotional);
             await sleep(longTime)
             await send(defaultMessages?.menu);
+            this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: false};
             break
 
           case "2":
             await send(defaultMessages?.info);
             await sleep(longTime)
             await send(defaultMessages?.menu);
+            this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: false};
             break;
 
           case "3":
@@ -202,6 +204,7 @@ class WhatsappService {
             await send(defaultMessages?.localization);
             await sleep(longTime)
             await send(defaultMessages?.menu);
+            this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: false};
             break;
 
           case "5":
