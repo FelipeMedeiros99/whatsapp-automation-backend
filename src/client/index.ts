@@ -9,6 +9,22 @@ import { sleep } from '../tools/timeFunctions.js';
 const longTime = 3000;
 const smallTime = 1000;
 
+const clientConfigs = {
+  puppeteer: {
+    headless: true, args: [
+      //'--no-sandbox',
+      // '--disable-setuid-sandbox',
+      // '--disable-dev-shm-usage',
+      // '--disable-accelerated-2d-canvas',
+      // '--disable-gpu',
+      // '--no-first-run',
+      // '--no-zygote',
+      // '--single-process',
+      // '--disable-extensions'
+    ]
+  }
+}
+
 interface Users {
   [key: string]: {
     timestamp: number;
@@ -27,21 +43,7 @@ class WhatsappService {
 
   constructor() {
     // this.client = new Client({ authStrategy: new LocalAuth() });
-    this.client = new Client({
-      puppeteer: {
-        headless: true, args: [
-          //'--no-sandbox',
-          // '--disable-setuid-sandbox',
-          // '--disable-dev-shm-usage',
-          // '--disable-accelerated-2d-canvas',
-          // '--disable-gpu',
-          // '--no-first-run',
-          // '--no-zygote',
-          // '--single-process',
-          // '--disable-extensions'
-        ]
-      }
-    });
+    this.client = new Client(clientConfigs);
     this.setupListeners()
   }
 
@@ -78,22 +80,34 @@ class WhatsappService {
   }
 
   async connect(): Promise<string> {
-    await this.client.initialize();
-
-    return new Promise((resolve) => {
-      const checkQrCode = setInterval(() => {
-        if (this.qrCode) {
-          clearInterval(checkQrCode);
-          resolve(this.qrCode)
-        }
-      }, 2000);
-    });
+    try{
+      if(this.client && this.client.info && this.client.destroy){
+        this.client.destroy()
+      }
+      await this.client.initialize();
+      
+      return new Promise((resolve) => {
+        const checkQrCode = setInterval(() => {
+          if (this.qrCode) {
+            clearInterval(checkQrCode);
+            resolve(this.qrCode)
+          }
+        }, 2000);
+      });
+    }catch(e){
+      console.log("Erro ao tentear se conectar")
+      return("erro ao tentar se conectar")
+    }
   }
 
   public async generateAnoterQrCode() {
     if (this.client) {
       await this.client.destroy();
-      return await this.connect()
+
+      this.client = new Client(clientConfigs)
+      this.setupListeners()
+
+      return await this.connect();
     }
   }
 
@@ -108,7 +122,11 @@ class WhatsappService {
     const messageFrom = message.from;
 
     const send = async (text: string, number: string = messageFrom) => {
-      await this.client.sendMessage(number, text)
+      try{
+        await this.client.sendMessage(number, text)
+      }catch(e){
+        console.log("erro ao enviar mensagem: ", e)
+      }
     }
 
     const desactiveResponse = (number: string) => {
@@ -138,12 +156,12 @@ class WhatsappService {
     }
 
     if (isMe && contentMessage === defaultMessages.reserved) {
-      await sleep(smallTime);
-      await send(defaultMessages?.info, messageTo);
-      await sleep(smallTime);
-      await send(defaultMessages?.promotional, messageTo);
-      await sleep(smallTime);
-      await send(defaultMessages?.more, messageTo)
+        await sleep(smallTime);
+        await send(defaultMessages?.info, messageTo);
+        await sleep(smallTime);
+        await send(defaultMessages?.promotional, messageTo);
+        await sleep(smallTime);
+        await send(defaultMessages?.more, messageTo)
     }
 
     // && messageFrom.includes("559891402255")
