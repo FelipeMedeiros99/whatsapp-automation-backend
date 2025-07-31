@@ -5,7 +5,7 @@ export function handleErrorMiddleware(err: any, req: Request, res: Response, nex
   const statusCode = err?.statusCode || 500;
   const message = err?.message || "Erro interno do servidor";
 
-  res.status(statusCode).json({
+  return res.status(statusCode).json({
     message: message,
     error: err.error
   })

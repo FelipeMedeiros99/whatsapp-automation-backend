@@ -75,8 +75,9 @@ _Obs2: O valor da hospedagem varia conforme a quantidade de hóspedes._`,
 
 Aguarde, nosso atendente já vai te atender 😊`,
 
-  localization: `https://maps.app.goo.gl/rzFsMDFvF6N8Bjt19
-Av. Castelo Branco, 377 - São Francisco, São Luís - MA, 65076-090`,
+  localization: `*Endereço:* _Av. Castelo Branco, 377 - São Francisco, São Luís - MA, 65076-090_
+  
+*Localização:* https://maps.app.goo.gl/rzFsMDFvF6N8Bjt19`,
 
   wait: `Aguarde, nosso atendente já vai te atender 😊`,
 
@@ -94,9 +95,9 @@ Aguarde, nosso atendente já vai te atender 😊`,
 
   reserved: `Reserva realizada com sucesso!
 
-*Pagamento a ser realizado no ato do Check-In*
+*Pagamento a ser realizado no ato do Check-In*`,
 
-Esperamos por você, até mais!`,
+  finish: `Atendimento finalizado com sucesso!`,
 
-  finish: `Atendimento finalizado com sucesso!`
+  more: "Podemos ajudar em algo mais?"
 }

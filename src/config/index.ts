@@ -1,4 +1,4 @@
-// import { PrismaClient } from '../generated/prisma'
+// import { PrismaClient } from '../generated/prisma/index.js'
 
 // const prisma = new PrismaClient()
 
@@ -12,19 +12,16 @@
 // }
 
 // export const getAllMessages = async() => {
-//   try{
-//     const messages = await prisma.defaultMessage.findMany();
-//     return messages;
-//   }catch(e){
-//     return e
-//   }
+//   const messages = await prisma.defaultMessage.findMany();
+//   return messages;
+
 // }
 
-// export const getMessageByTitle = async(title: string) => {
-//   try{
-//     const message = await prisma.defaultMessage.findFirst({where:{title: title}})
-//     return message;
-//   }catch(e){
-//     return e
-//   }
-// }
+// // export const getMessageByTitle = async(title: string) => {
+// //   try{
+// //     const message = await prisma.defaultMessage.findFirst({where:{title: title}})
+// //     return message;
+// //   }catch(e){
+// //     return e
+// //   }
+// // }

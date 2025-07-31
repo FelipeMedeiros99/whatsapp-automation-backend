@@ -6,10 +6,15 @@ import { sleep } from '../tools/timeFunctions.js';
 
 // const { LocalAuth } = Whatsapp;
 
+const longTime = 3000;
+const smallTime = 1000;
+
 interface Users {
   [key: string]: {
     timestamp: number;
     isBotStoped: boolean;
+    welcome: boolean;
+    menuAlredSent: boolean;
   }
 }
 
@@ -22,7 +27,21 @@ class WhatsappService {
 
   constructor() {
     // this.client = new Client({ authStrategy: new LocalAuth() });
-    this.client = new Client({puppeteer:{headless: true, args: ['--no-sandbox']}});
+    this.client = new Client({
+      puppeteer: {
+        headless: true, args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-extensions'
+        ]
+      }
+    });
     this.setupListeners()
   }
 
@@ -37,31 +56,29 @@ class WhatsappService {
       this.qrCode = null;
     })
 
-    this.client.on("ready", () => {
-    })
+    // this.client.on("ready", () => {
+    // })
 
     this.client.on("message_create", async (message) => {
       try {
         await this.sendingMessages(message)
       } catch (e) {
-        console.log("Erro ao enviar mensagens: ", e)
+        throw { message: "Erro ao enviar mensagem", statusCode: 404 }
       }
     })
 
+    //TODO
     setInterval(() => {
       for (let key of Object.keys(this.users)) {
         if (Math.ceil(Date.now() / 1000) - this.users[key].timestamp > 60 * 60) {
           delete this.users[key]
         }
       }
-    }, 60 * 60 * 1000)
+    }, 60 * 1000)
   }
 
   async connect(): Promise<string> {
     await this.client.initialize();
-
-    // if (!this.client.info) {
-    // }
 
     return new Promise((resolve) => {
       const checkQrCode = setInterval(() => {
@@ -69,7 +86,7 @@ class WhatsappService {
           clearInterval(checkQrCode);
           resolve(this.qrCode)
         }
-      }, 1000);
+      }, 2000);
     });
   }
 
@@ -79,10 +96,6 @@ class WhatsappService {
       return await this.connect()
     }
   }
-
-  // public async getMessage(title: string){
-  //   return getMessageByTitle(title)
-  // }
 
   public getStatus() {
     return { isLoged: this.isAuthenticated };
@@ -94,8 +107,6 @@ class WhatsappService {
     const messageTo = message.to;
     const messageFrom = message.from;
 
-    // console.log({ isMe, contentMessage, messageFrom })
-
     const send = async (text: string, number: string = messageFrom) => {
       await this.client.sendMessage(number, text)
     }
@@ -104,7 +115,7 @@ class WhatsappService {
       this.users[number] = { ...this.users[number], isBotStoped: true }
     }
 
-    const activeResponse = (number:string) => {
+    const activeResponse = (number: string) => {
       if (this.users[number]) delete this.users[number]
     }
 
@@ -127,18 +138,17 @@ class WhatsappService {
     }
 
     if (isMe && contentMessage === defaultMessages.reserved) {
-      await sleep(1000)
+      await sleep(smallTime);
       await send(defaultMessages?.info, messageTo);
-      await sleep(1000)
-      await send(defaultMessages?.promotional)
-      await sleep(1000)
-      await send(defaultMessages?.finish)
-      activeResponse(messageTo)
+      await sleep(smallTime);
+      await send(defaultMessages?.promotional, messageTo);
+      await sleep(smallTime);
+      await send(defaultMessages?.more, messageTo)
     }
 
     // && messageFrom.includes("559891402255")
 
-    if (!isMe && messageFrom.includes("@c.us")) {
+    if (!isMe && messageFrom.includes("@c.us") && messageFrom.includes("559891402255")) {
 
 
       // 1  — Tarifários
@@ -148,20 +158,20 @@ class WhatsappService {
       // 5  — Solicitar Nota Fiscal
       // 6  — Falar com um atendente
 
-      if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false });
+      if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: false, menuAlredSent: false });
 
       if (!this.users[messageFrom].isBotStoped) {
         switch (contentMessage.trim()) {
           case "1":
             await send(defaultMessages?.tariffs);
             await send(defaultMessages?.promotional);
-            await sleep(3000)
+            await sleep(longTime)
             await send(defaultMessages?.menu);
             break
 
           case "2":
             await send(defaultMessages?.info);
-            await sleep(3000)
+            await sleep(longTime)
             await send(defaultMessages?.menu);
             break;
 
@@ -172,7 +182,7 @@ class WhatsappService {
 
           case "4":
             await send(defaultMessages?.localization);
-            await sleep(3000)
+            await sleep(longTime)
             await send(defaultMessages?.menu);
             break;
 
@@ -187,7 +197,13 @@ class WhatsappService {
             break
 
           default:
-            await send(defaultMessages?.start);
+            if(!this.users[messageFrom].welcome){
+              this.users[messageFrom] = {...this.users[messageFrom], welcome: true}
+              await send(defaultMessages?.start);
+            }else if(!this.users[messageFrom].menuAlredSent){
+              this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: true}
+              await send(defaultMessages?.menu);
+            }
             break;
         }
       }
