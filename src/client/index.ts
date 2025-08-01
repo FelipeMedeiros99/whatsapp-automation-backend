@@ -8,6 +8,7 @@ import { sleep } from '../tools/timeFunctions.js';
 
 const longTime = 3000;
 const smallTime = 1000;
+const oneHour = 60 * 60 * 1000
 
 const clientConfigs = {
   puppeteer: {
@@ -72,11 +73,11 @@ class WhatsappService {
     //TODO
     setInterval(() => {
       for (let key of Object.keys(this.users)) {
-        if (Math.ceil(Date.now() / 1000) - this.users[key].timestamp > 60 * 60) {
+        if (Date.now() - (this.users[key].timestamp * 1000) > (3 * oneHour)) {
           delete this.users[key]
         }
       }
-    }, 60 * 1000)
+    }, oneHour)
   }
 
   async connect(): Promise<string> {

@@ -9,8 +9,8 @@ export const defaultMessages: {[key: string]: string} = {
 
 Como posso te ajudar hoje?
 
-1. *Tarifários*
-2. *Informativos*
+1. *Tarifas e valores das diárias*
+2. *Informativos sobre o hotel*
 3. *Nova Reserva*
 4. *Localização*
 5. *Solicitar Nota Fiscal*
@@ -19,16 +19,14 @@ Como posso te ajudar hoje?
 Digite o número correspondente à opção desejada. 😊
 `,
 
-  menu: `
-1. *Tarifários*
-2. *Informativos*
+  menu: `1. *Tarifas e valores das diárias*
+2. *Informativos sobre o hotel*
 3. *Nova Reserva*
 4. *Localização*
 5. *Solicitar Nota Fiscal*
 6. *Falar com atendente*
 
-Digite o número correspondente à opção desejada. 😊
-`,
+Digite o número correspondente à opção desejada. 😊`,
 
   tariffs: `🏨 Tarifas de Hospedagem 🏨
 
@@ -45,8 +43,7 @@ _Obs2: O valor da hospedagem varia conforme a quantidade de hóspedes._`,
 
   promotional: `*Desconto de R$ 20,00* em cada diária para pagamento com *dinheiro em espécie.*`,
 
-  info: `
-🏨 *Informativos do Gree Hotel* 🏨
+  info: `🏨 *Informativos do Gree Hotel* 🏨
 
 - Café da manhã incluso
 - Garagem rotativa *(vagas limitadas)*
@@ -62,17 +59,15 @@ _Obs2: O valor da hospedagem varia conforme a quantidade de hóspedes._`,
 *Tarífas válidas até 31/08/2025*
 
 🌐 Site oficial: www.greehotel.com.br
-📩 Reservas corporativas: reservasgree@gmail.com
-`,
+📩 Reservas corporativas: reservasgree@gmail.com`,
 
-  reservation: `Para prosseguir com a reserva, por gentileza informe os seguintes dados:
+  reservation: `*Dados para reservar*:
   
-- _Nome completo:_
-- _CPF:_
-- _Data de entrada:_
-- _Data de saída:_
-- _Qtd de hóspedes:_
-`,
+Nome completo:
+CPF:
+Data de entrada:
+Data de saída:
+Qtd de hóspedes:`,
 
   localization: `*Endereço:* _Av. Castelo Branco, 377 - São Francisco, São Luís - MA, 65076-090_
   
@@ -82,11 +77,11 @@ _Obs2: O valor da hospedagem varia conforme a quantidade de hóspedes._`,
 
   invoice: `Para a emissão da nota fiscal, solicitamos as seguintes informações:
 
-* *Nome completo* ou *Razão Social* :
-* *CPF* ou *CNPJ* :
-* *Endereço* completo:
-* *Período* da hospedagem:
-* *Valor* da hospedagem:
+* *Nome completo* ou *Razão Social* 
+* *CPF* ou *CNPJ* 
+* *Endereço* completo
+* *Período* da hospedagem
+* *Valor* da hospedagem
 
 _Obs: Prazo de *4 dias úteis* para envio da nota fiscal_`,
 
