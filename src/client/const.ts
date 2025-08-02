@@ -77,11 +77,11 @@ Qtd de hóspedes:`,
 
   invoice: `Para a emissão da nota fiscal, solicitamos as seguintes informações:
 
-* *Nome completo* ou *Razão Social* 
-* *CPF* ou *CNPJ* 
-* *Endereço* completo
-* *Período* da hospedagem
-* *Valor* da hospedagem
+* *Nome completo* ou *Razão Social* :
+* *CPF* ou *CNPJ* :
+* *Endereço* completo:
+* *Período* da hospedagem:
+* *Valor* da hospedagem:
 
 _Obs: Prazo de *4 dias úteis* para envio da nota fiscal_`,
 

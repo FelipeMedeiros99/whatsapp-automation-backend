@@ -2,6 +2,7 @@ import { Message, Client } from 'whatsapp-web.js';
 import { defaultMessages } from './const.js';
 import { sleep } from '../tools/timeFunctions.js';
 import { writeLogs } from '../tools/archivesFunctions.js';
+import "dotenv/config"
 // import { getMessageByTitle } from '../config';
 // import { DefaultMessage } from '../generated/prisma';
 
@@ -74,7 +75,7 @@ class WhatsappService {
     //TODO
     setInterval(() => {
       for (let key of Object.keys(this.users)) {
-        if (Date.now() - (this.users[key].timestamp * 1000) > (3 * oneHour)) {
+        if (Date.now() - (this.users[key].timestamp * 1000) > (1 * oneHour)) {
           delete this.users[key]
         }
       }
@@ -127,6 +128,7 @@ class WhatsappService {
 
 
     const send = async (text: string, number: string = messageFrom) => {
+      this.users[number] = {...this.users[number], timestamp: message.timestamp}
       try{
         await this.client.sendMessage(number, text)
       }catch(e){
@@ -172,7 +174,7 @@ class WhatsappService {
 
     // && messageFrom.includes("559891402255")
 
-    if (!isMe && messageFrom.includes("@c.us")) {
+    if (!isMe && messageFrom.includes("@c.us") && process.env.ENV?messageFrom.includes("559891402255"):true) {
 
 
       // 1  — Tarifários
