@@ -172,7 +172,7 @@ class WhatsappService {
 
     // && messageFrom.includes("559891402255")
 
-    if (!isMe && messageFrom.includes("@c.us") && messageFrom.includes("559891402255")) {
+    if (!isMe && messageFrom.includes("@c.us")) {
 
 
       // 1  — Tarifários
