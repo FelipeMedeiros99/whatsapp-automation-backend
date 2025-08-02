@@ -224,12 +224,14 @@ class WhatsappService {
             break
 
           default:
-            if(!this.users[messageFrom].welcome){
-              this.users[messageFrom] = {...this.users[messageFrom], welcome: true}
-              await send(defaultMessages?.start);
-            }else if(!this.users[messageFrom].menuAlredSent){
-              this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: true}
-              await send(defaultMessages?.selectNumber);
+            if(contentMessage.length > 0){
+              if(!this.users[messageFrom].welcome){
+                this.users[messageFrom] = {...this.users[messageFrom], welcome: true}
+                await send(defaultMessages?.start);
+              }else if(!this.users[messageFrom].menuAlredSent){
+                this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: true}
+                await send(defaultMessages?.selectNumber);
+              }
             }
             break;
         }
