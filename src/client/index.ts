@@ -1,6 +1,7 @@
 import { Message, Client } from 'whatsapp-web.js';
 import { defaultMessages } from './const.js';
 import { sleep } from '../tools/timeFunctions.js';
+import { writeLogs } from '../tools/archivesFunctions.js';
 // import { getMessageByTitle } from '../config';
 // import { DefaultMessage } from '../generated/prisma';
 
@@ -122,6 +123,9 @@ class WhatsappService {
     const messageTo = message.to;
     const messageFrom = message.from;
 
+    writeLogs(JSON.stringify({id: message.id, text: message.body}));
+
+
     const send = async (text: string, number: string = messageFrom) => {
       try{
         await this.client.sendMessage(number, text)
@@ -168,7 +172,7 @@ class WhatsappService {
 
     // && messageFrom.includes("559891402255")
 
-    if (!isMe && messageFrom.includes("@c.us")) {
+    if (!isMe && messageFrom.includes("@c.us") && messageFrom.includes("559891402255")) {
 
 
       // 1  — Tarifários
@@ -180,7 +184,7 @@ class WhatsappService {
 
       if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: false, menuAlredSent: false });
 
-      if (!this.users[messageFrom].isBotStoped) {
+      if (!this.users[messageFrom].isBotStoped) {        
         switch (contentMessage.trim()) {
           case "1":
             await send(defaultMessages?.tariffs);
