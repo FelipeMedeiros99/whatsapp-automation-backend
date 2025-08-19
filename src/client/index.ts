@@ -124,7 +124,7 @@ class WhatsappService {
     const messageTo = message.to;
     const messageFrom = message.from;
 
-    writeLogs(JSON.stringify({id: message.id, text: message.body}));
+    // writeLogs(JSON.stringify({id: message.id, text: message.body}));
 
 
     const send = async (text: string, number: string = messageFrom) => {
