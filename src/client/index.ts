@@ -41,7 +41,6 @@ class WhatsappService {
   private client: Client;
   private qrCode: string | null = null;
   private isAuthenticated: boolean = false;
-  private messages: Message[] = [];
   private users: Users = {};
 
   constructor() {
@@ -123,9 +122,6 @@ class WhatsappService {
     const contentMessage = message.body;
     const messageTo = message.to;
     const messageFrom = message.from;
-
-    // writeLogs(JSON.stringify({id: message.id, text: message.body}));
-
 
     const send = async (text: string, number: string = messageFrom) => {
       this.users[number] = {...this.users[number], timestamp: message.timestamp}
