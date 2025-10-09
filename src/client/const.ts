@@ -14,7 +14,8 @@ Como posso te ajudar hoje?
 3. *Nova Reserva*
 4. *Localização*
 5. *Solicitar Nota Fiscal*
-6. *Falar com atendente*
+6. *Treinamento EAGLE TEAM*
+7. *Falar com atendente*
 
 Digite o número correspondente à opção desejada. 😊
 `,
@@ -24,7 +25,8 @@ Digite o número correspondente à opção desejada. 😊
 3. *Nova Reserva*
 4. *Localização*
 5. *Solicitar Nota Fiscal*
-6. *Falar com atendente*
+6. *Treinamento EAGLE TEAM*
+7. *Falar com atendente*
 
 Digite o número correspondente à opção desejada. 😊`,
 
@@ -94,4 +96,25 @@ _Obs: Prazo de *4 dias úteis* para envio da nota fiscal_`,
   more: "Podemos ajudar em algo mais?",
 
   selectNumber: `Por gentileza, digite o número correspondente à opção desejada. 😊 `,
+
+  event_value: `*Tarifas de hospedagem exclusivas para participantes do Treinamento com o Santos EAGLE TEAM*
+
+  - *1 pessoa* – *R$ 180,00* _(1 cama de casal)_
+  
+  - *2 pessoas* – *R$ 200,00* _(1 ou 2 camas de casal)_
+  
+  - *3 pessoas* – *R$ 300,00* _(2 camas de casal)_
+  
+  - *4 pessoas* – *R$ 360,00* _(2 camas de casal)_`,
+
+  event_reservation: `*Dados para reservar*:
+  
+Nome completo:
+CPF:
+Data de entrada:
+Data de saída:
+Qtd de hóspedes:
+
+Palavra chave do evento:
+  `
 }

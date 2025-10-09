@@ -215,8 +215,15 @@ class WhatsappService {
             await send(defaultMessages?.invoice);
             desactiveResponse(messageFrom);
             break
-
+          
           case "6":
+            await send(defaultMessages?.event_value)
+            await sleep(smallTime)
+            await send(defaultMessages?.event_reservation)
+            desactiveResponse(messageFrom)
+            break
+
+          case "7":
             await send(defaultMessages?.wait);
             desactiveResponse(messageFrom);
             break
