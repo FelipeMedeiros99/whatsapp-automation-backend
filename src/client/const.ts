@@ -103,9 +103,9 @@ _Obs: Prazo de *4 dias úteis* para envio da nota fiscal_`,
   
   - *2 pessoas* – *R$ 200,00* _(1 ou 2 camas de casal)_
   
-  - *3 pessoas* – *R$ 300,00* _(2 camas de casal)_
+  - *3 pessoas* – *R$ 250,00* _(2 camas de casal)_
   
-  - *4 pessoas* – *R$ 360,00* _(2 camas de casal)_`,
+  - *4 pessoas* – *R$ 300,00* _(2 camas de casal)_`,
 
   event_reservation: `*Dados para reservar*:
   
