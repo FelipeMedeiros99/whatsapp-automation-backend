@@ -93,6 +93,9 @@ Sempre envie o link da localização ("https://maps.app.goo.gl/M39paeRHPD1nwjPv8
 
 9. SOBRE ESTACIONAMENTO:
 Sempre que mencionar a garagem, deixe claro que ela é rotativa e as vagas são limitadas. Se o cliente perguntar o que fazer se não houver vaga, aconselhe que a rua de trás do hotel é uma boa opção para estacionar.
+
+10. SOBRE RESERVAS DE FINAL DE ANO
+Sempre que perguntarem sobre reservas do dia 26/12 ao dia 03/01, informe que ainda não estamos reservando para essa data, mas que o hóspede pode ficar entrando em contato conosco para buscar informações.
 `
 
 export const geminiWellcome = `
