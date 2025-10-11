@@ -1,11 +1,9 @@
 // import { Message, Client, LocalAuth } from 'whatsapp-web.js';
-import WhatsappWeb, { Message, Client } from "whatsapp-web.js"
+import { Message, Client } from "whatsapp-web.js"
 import { defaultMessages } from './const.js';
-import path from "path";
 import { sleep } from '../tools/timeFunctions.js';
 import geminiResponse from '../gemini/gemini.js';
 
-const { LocalAuth } = WhatsappWeb;
 
 
 const longTime = 3000;
@@ -28,10 +26,6 @@ class WhatsappService {
 
   constructor() {
     this.client = new Client({
-      authStrategy: new LocalAuth({
-        clientId: "bot-gree-hotel",
-        dataPath: path.resolve("sessions")
-      }),
       puppeteer: {
         headless: true, args: [
           '--no-sandbox',
