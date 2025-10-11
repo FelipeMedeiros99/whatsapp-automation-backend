@@ -128,7 +128,7 @@ class WhatsappService {
     if (isMe) {
       // Iniciando bot caso a mensagem seja de finalização de chat
       if (contentMessage === defaultMessages.finish) {
-        this.users[messageFrom].isBotStoped = false;
+        this.users[messageTo].isBotStoped = false;
         this.users[messageTo].messageFromBot = true
 
       }
