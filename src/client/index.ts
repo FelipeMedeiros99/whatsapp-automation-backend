@@ -141,23 +141,28 @@ class WhatsappService {
       // Iniciando bot caso a mensagem seja de finalização de chat
       if (contentMessage === defaultMessages.finish) {
         this.users[messageFrom].isBotStoped = false;
+        this.users[messageTo].messageFromBot = true
       }
 
       // Reiniciando o bot em caso de finalização de reserva
       if (contentMessage === defaultMessages.reserved) {
+        // const response = await geminiResponse("", "confirmReservation") || ""
+        // const sleepTime = response!.length / 0.004;
+        // const maxTime = 6000
 
-        const response = await geminiResponse("", "confirmReservation") || ""
-        const sleepTime = response!.length / 0.004;
-        const maxTime = 6000
+        // await sleep(sleepTime < maxTime ? sleepTime : maxTime);
+        // await send(response, messageTo)
 
-        await sleep(sleepTime < maxTime ? sleepTime : maxTime);
-        await send(response, messageTo)
+        await send(defaultMessages?.info, messageTo);
+        await sleep(smallTime);
+        await send(defaultMessages?.promotional, messageTo);
+        await sleep(smallTime);
+        await send(defaultMessages?.more, messageTo)
       }
 
       this.users[messageTo].messageFromBot = false
 
     }
-
 
     if (
       !isMe &&
@@ -177,7 +182,7 @@ class WhatsappService {
         this.users[messageFrom].messageFromBot = true;
         const response = await geminiResponse(contentMessage, this.users[messageFrom].welcome ? "welcome" : "default") || ""
         const sleepTime = response!.length / 0.004;
-        const maxTime = 5000
+        const maxTime = 3500
 
         await sleep(sleepTime < maxTime ? sleepTime : maxTime);
         await send(response)
