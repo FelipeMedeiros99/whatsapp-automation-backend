@@ -1,10 +1,12 @@
-import { Message, Client } from 'whatsapp-web.js';
+// import { Message, Client, LocalAuth } from 'whatsapp-web.js';
+import WhatsappWeb, { Message, Client } from "whatsapp-web.js"
 import { defaultMessages } from './const.js';
+import path from "path";
 import { sleep } from '../tools/timeFunctions.js';
-// import { getMessageByTitle } from '../config';
-// import { DefaultMessage } from '../generated/prisma';
+import geminiResponse from '../gemini/gemini.js';
 
-// const { LocalAuth } = Whatsapp;
+const { LocalAuth } = WhatsappWeb;
+
 
 const longTime = 3000;
 const smallTime = 1000;
@@ -14,7 +16,6 @@ interface Users {
     timestamp: number;
     isBotStoped: boolean;
     welcome: boolean;
-    menuAlredSent: boolean;
   }
 }
 
@@ -22,12 +23,14 @@ class WhatsappService {
   private client: Client;
   private qrCode: string | null = null;
   private isAuthenticated: boolean = false;
-  private messages: Message[] = [];
   private users: Users = {};
 
   constructor() {
-    // this.client = new Client({ authStrategy: new LocalAuth() });
     this.client = new Client({
+      authStrategy: new LocalAuth({
+        clientId: "bot-gree-hotel",
+        dataPath: path.resolve("sessions")
+      }),
       puppeteer: {
         headless: true, args: [
           '--no-sandbox',
@@ -52,22 +55,30 @@ class WhatsappService {
     })
 
     this.client.on("authenticated", () => {
+      console.log("autenticado")
       this.isAuthenticated = true;
       this.qrCode = null;
     })
 
-    // this.client.on("ready", () => {
-    // })
+    this.client.on("disconnected", (reason) => {
+      console.log("desconectado");
+      console.log("Motivo:", reason);
+      this.isAuthenticated = false;
+    });
+
+
+    this.client.on("ready", () => {
+      console.log("cliente ready")
+    })
 
     this.client.on("message_create", async (message) => {
       try {
         await this.sendingMessages(message)
       } catch (e) {
-        throw { message: "Erro ao enviar mensagem", statusCode: 404 }
+        console.log("Erro ao enviar mensagem", e)
       }
     })
 
-    //TODO
     setInterval(() => {
       for (let key of Object.keys(this.users)) {
         if (Math.ceil(Date.now() / 1000) - this.users[key].timestamp > 60 * 60) {
@@ -107,107 +118,101 @@ class WhatsappService {
     const messageTo = message.to;
     const messageFrom = message.from;
 
+    console.log({ isMe, contentMessage, messageTo, messageFrom })
+
     const send = async (text: string, number: string = messageFrom) => {
       await this.client.sendMessage(number, text)
     }
 
-    const desactiveResponse = (number: string) => {
-      this.users[number] = { ...this.users[number], isBotStoped: true }
-    }
+    const gree = "559891402255"
+    const felipe = "559887835523"
+    const leo = "559884786375"
+    if (
+      !isMe &&
+      messageFrom.includes("@c.us") &&
+      contentMessage
+      // (messageFrom.includes(leo) || messageFrom.includes(felipe)) &&
+    ) {
 
-    const activeResponse = (number: string) => {
-      if (this.users[number]) delete this.users[number]
-    }
-
-    const checkInterruption = () => {
-      let isInterruption = true;
-      for (let key in defaultMessages) {
-        if (defaultMessages[key] === contentMessage) {
-          isInterruption = false;
-          break;
-        }
+      // inserindo dados padrão para novas conversas
+      if (!this.users[messageFrom]) {
+        this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: true });
       }
-      if (isInterruption) desactiveResponse(messageTo)
 
+
+      // Reiniciando o bot em caso de finalização
+      if (isMe && contentMessage === defaultMessages.finish) {
+        this.users[messageFrom].isBotStoped = false;
+      }
+
+      if (isMe && contentMessage === defaultMessages.reserved) { 
+        
+        const response = await geminiResponse("", "confirmReservation")
+        const sleepTime = response!.length / 0.004;
+        const maxTime = 6000
+
+        await sleep(sleepTime < maxTime ? sleepTime : maxTime);
+
+
+      }
+
+      // Resposta da IA
+      if (!this.users[messageFrom].isBotStoped) {
+        const response = await geminiResponse(contentMessage, this.users[messageFrom].welcome ? "welcome" : "default") || ""
+        const sleepTime = response!.length / 0.004;
+        const maxTime = 5000
+
+        await sleep(sleepTime < maxTime ? sleepTime : maxTime);
+        await send(response)
+
+        if (this.users[messageFrom].welcome) this.users[messageFrom].welcome = false
+        if (response?.includes("irei repassar você para um atendente")) this.users[messageFrom].isBotStoped = true;
+      }
     }
 
-    if (isMe) checkInterruption();
 
-    if (isMe && contentMessage === defaultMessages.finish) {
-      activeResponse(messageTo);
-    }
 
-    if (isMe && contentMessage === defaultMessages.reserved) {
-      await sleep(smallTime);
-      await send(defaultMessages?.info, messageTo);
-      await sleep(smallTime);
-      await send(defaultMessages?.promotional, messageTo);
-      await sleep(smallTime);
-      await send(defaultMessages?.more, messageTo)
-    }
+
+
+
+
+
+    // const desactiveResponse = (number: string) => {
+    //   this.users[number] = { ...this.users[number], isBotStoped: true }
+    // }
+
+    // const activeResponse = (number: string) => {
+    //   if (this.users[number]) delete this.users[number]
+    // }
+
+    // if (isMe && contentMessage === defaultMessages.finish) {
+    //   activeResponse(messageTo);
+    // }
+
+    // if (isMe && contentMessage === defaultMessages.reserved) {
+    //   await sleep(smallTime);
+    //   await send(defaultMessages?.info, messageTo);
+    //   await sleep(smallTime);
+    //   await send(defaultMessages?.promotional, messageTo);
+    //   await sleep(smallTime);
+    //   await send(defaultMessages?.more, messageTo)
+    // }
 
     // && messageFrom.includes("559891402255")
 
-    if (!isMe && messageFrom.includes("@c.us") && messageFrom.includes("559891402255")) {
+    // if (!isMe && (messageFrom.includes("@c.us") || messageFrom.includes("@lid"))  && messageFrom.includes("559891402255")) {
+    //   console.log("1")
 
-
-      // 1  — Tarifários
-      // 2  — Informativos
-      // 3  — Reservas
-      // 4  — Localização
-      // 5  — Solicitar Nota Fiscal
-      // 6  — Falar com um atendente
-
-      if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: false, menuAlredSent: false });
-
-      if (!this.users[messageFrom].isBotStoped) {
-        switch (contentMessage.trim()) {
-          case "1":
-            await send(defaultMessages?.tariffs);
-            await send(defaultMessages?.promotional);
-            await sleep(longTime)
-            await send(defaultMessages?.menu);
-            break
-
-          case "2":
-            await send(defaultMessages?.info);
-            await sleep(longTime)
-            await send(defaultMessages?.menu);
-            break;
-
-          case "3":
-            await send(defaultMessages?.reservation);
-            desactiveResponse(messageFrom);
-            break
-
-          case "4":
-            await send(defaultMessages?.localization);
-            await sleep(longTime)
-            await send(defaultMessages?.menu);
-            break;
-
-          case "5":
-            await send(defaultMessages?.invoice);
-            desactiveResponse(messageFrom);
-            break
-
-          case "6":
-            await send(defaultMessages?.wait);
-            desactiveResponse(messageFrom);
-            break
-
-          default:
-            if(!this.users[messageFrom].welcome){
-              this.users[messageFrom] = {...this.users[messageFrom], welcome: true}
-              await send(defaultMessages?.start);
-            }else if(!this.users[messageFrom].menuAlredSent){
-              this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: true}
-              await send(defaultMessages?.menu);
-            }
-            break;
-        }
-      }
-    }
+    //   if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: false, menuAlredSent: false });
+    //   console.log("2")
+    //   if (!this.users[messageFrom].isBotStoped) {
+    //     console.log("3")
+    //     const response = await geminiResponse(contentMessage)
+    //     console.log(response)
+    //     await send(response!)
+    //     console.log(response)
+    //   }
+    // }
   }
 }
 

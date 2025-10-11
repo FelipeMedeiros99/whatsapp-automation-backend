@@ -17,8 +17,6 @@ app.use(json())
 
 app.get("/whatsapp/connect/", connectController);
 app.get("/whatsapp/status/", getStatusController);
-// app.get("/whatsapp/messages/", getAllMessagesController);
-// app.put("/whatsapp/messages/update", updateMessageController);
 
 app.use(handleErrorMiddleware);
 
