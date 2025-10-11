@@ -126,20 +126,15 @@ class WhatsappService {
 
     // restrições para quando a mensagem for enviada pelo atendente
     if (isMe) {
-
-      // parando o bot caso a mensagem seja enviada por um atendente
-      if (!this.users[messageTo].messageFromBot) {
-        this.users[messageTo].isBotStoped = true
-      }
-
       // Iniciando bot caso a mensagem seja de finalização de chat
       if (contentMessage === defaultMessages.finish) {
         this.users[messageFrom].isBotStoped = false;
         this.users[messageTo].messageFromBot = true
+
       }
 
       // Reiniciando o bot em caso de finalização de reserva
-      if (contentMessage === defaultMessages.reserved) {
+      else if (contentMessage === defaultMessages.reserved) {
         // const response = await geminiResponse("", "confirmReservation") || ""
         // const sleepTime = response!.length / 0.004;
         // const maxTime = 6000
@@ -152,6 +147,11 @@ class WhatsappService {
         await send(defaultMessages?.promotional, messageTo);
         await sleep(smallTime);
         await send(defaultMessages?.more, messageTo)
+      }
+
+      // parando o bot caso a mensagem seja enviada por um atendente
+      if (!this.users[messageTo].messageFromBot) {
+        this.users[messageTo].isBotStoped = true
       }
 
       this.users[messageTo].messageFromBot = false
@@ -183,9 +183,7 @@ class WhatsappService {
 
         if (this.users[messageFrom].welcome) this.users[messageFrom].welcome = false
         const messageLowerCase = response.toLocaleLowerCase()
-        if (
-          messageLowerCase.includes("irei repassar você para um atendente") ||
-          (messageLowerCase.includes("repassar") && messageLowerCase.includes("atendente"))) {
+        if (messageLowerCase.includes("irei repassar você para um atendente")) {
           this.users[messageFrom].isBotStoped = true;
         }
       }
