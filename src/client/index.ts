@@ -146,12 +146,13 @@ class WhatsappService {
       }
 
       if (isMe && contentMessage === defaultMessages.reserved) { 
-        
-        const response = await geminiResponse("", "confirmReservation")
+         
+        const response = await geminiResponse("", "confirmReservation") || ""
         const sleepTime = response!.length / 0.004;
         const maxTime = 6000
 
         await sleep(sleepTime < maxTime ? sleepTime : maxTime);
+        await send(response, messageTo)
 
 
       }
