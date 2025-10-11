@@ -124,6 +124,7 @@ class WhatsappService {
       await this.client.sendMessage(number, text)
     }
 
+
     const gree = "559891402255"
     const felipe = "559887835523"
     const leo = "559884786375"
@@ -131,7 +132,6 @@ class WhatsappService {
       !isMe &&
       messageFrom.includes("@c.us") &&
       contentMessage
-      // (messageFrom.includes(leo) || messageFrom.includes(felipe)) &&
     ) {
 
       // inserindo dados padrão para novas conversas
@@ -139,14 +139,15 @@ class WhatsappService {
         this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: true });
       }
 
+      if (isMe && contentMessage === "Olá, sou atendente do Gree Hotel, como posso ajudar?") this.users[messageFrom].isBotStoped = true;
 
       // Reiniciando o bot em caso de finalização
       if (isMe && contentMessage === defaultMessages.finish) {
         this.users[messageFrom].isBotStoped = false;
       }
 
-      if (isMe && contentMessage === defaultMessages.reserved) { 
-         
+      if (isMe && contentMessage === defaultMessages.reserved) {
+
         const response = await geminiResponse("", "confirmReservation") || ""
         const sleepTime = response!.length / 0.004;
         const maxTime = 6000
@@ -167,7 +168,12 @@ class WhatsappService {
         await send(response)
 
         if (this.users[messageFrom].welcome) this.users[messageFrom].welcome = false
-        if (response?.includes("irei repassar você para um atendente")) this.users[messageFrom].isBotStoped = true;
+        const messageLowerCase = response.toLocaleLowerCase()
+        if (
+          messageLowerCase.includes("irei repassar você para um atendente") ||
+          (messageLowerCase.includes("repassar") && messageLowerCase.includes("atendente"))) {
+          this.users[messageFrom].isBotStoped = true;
+        }
       }
     }
 
