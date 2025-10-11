@@ -16,6 +16,7 @@ interface Users {
     timestamp: number;
     isBotStoped: boolean;
     welcome: boolean;
+    messageFromBot: boolean
   }
 }
 
@@ -128,6 +129,36 @@ class WhatsappService {
     const gree = "559891402255"
     const felipe = "559887835523"
     const leo = "559884786375"
+
+    // restrições para quando a mensagem for enviada pelo atendente
+    if (isMe) {
+
+      // parando o bot caso a mensagem seja enviada por um atendente
+      if (!this.users[messageTo].messageFromBot) {
+        this.users[messageTo].isBotStoped = true
+      }
+
+      // Iniciando bot caso a mensagem seja de finalização de chat
+      if (contentMessage === defaultMessages.finish) {
+        this.users[messageFrom].isBotStoped = false;
+      }
+
+      // Reiniciando o bot em caso de finalização de reserva
+      if (contentMessage === defaultMessages.reserved) {
+
+        const response = await geminiResponse("", "confirmReservation") || ""
+        const sleepTime = response!.length / 0.004;
+        const maxTime = 6000
+
+        await sleep(sleepTime < maxTime ? sleepTime : maxTime);
+        await send(response, messageTo)
+      }
+
+      this.users[messageTo].messageFromBot = false
+
+    }
+
+
     if (
       !isMe &&
       messageFrom.includes("@c.us") &&
@@ -136,30 +167,14 @@ class WhatsappService {
 
       // inserindo dados padrão para novas conversas
       if (!this.users[messageFrom]) {
-        this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: true });
-      }
-
-      if (isMe && contentMessage === "Olá, sou atendente do Gree Hotel, como posso ajudar?") this.users[messageFrom].isBotStoped = true;
-
-      // Reiniciando o bot em caso de finalização
-      if (isMe && contentMessage === defaultMessages.finish) {
-        this.users[messageFrom].isBotStoped = false;
-      }
-
-      if (isMe && contentMessage === defaultMessages.reserved) {
-
-        const response = await geminiResponse("", "confirmReservation") || ""
-        const sleepTime = response!.length / 0.004;
-        const maxTime = 6000
-
-        await sleep(sleepTime < maxTime ? sleepTime : maxTime);
-        await send(response, messageTo)
-
-
+        this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: true, messageFromBot: false });
+      } else {
+        this.users[messageFrom].timestamp = message.timestamp;
       }
 
       // Resposta da IA
       if (!this.users[messageFrom].isBotStoped) {
+        this.users[messageFrom].messageFromBot = true;
         const response = await geminiResponse(contentMessage, this.users[messageFrom].welcome ? "welcome" : "default") || ""
         const sleepTime = response!.length / 0.004;
         const maxTime = 5000
