@@ -225,6 +225,7 @@ class WhatsappService {
         
         await sleep(3500);
         await send(response);
+        await updateUser(messageFrom, {isBotStoped: false})
 
         if (userData.wasWelcome) await updateUser(userData.number, { wasWelcome: false });
         
