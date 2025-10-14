@@ -1,5 +1,5 @@
 import { Message } from "@prisma/client";
-import prisma from "../config";
+import prisma from "../config/index.js";
 
 export async function findMessage(number: string) {
   try {

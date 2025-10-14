@@ -1,5 +1,5 @@
 import { User } from "@prisma/client";
-import prisma from "../config";
+import prisma from "../config/index.js";
 
 
 export async function findAllUser() {
