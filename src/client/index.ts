@@ -1,12 +1,13 @@
-import { Message, Client } from 'whatsapp-web.js';
+// import { Message, Client, LocalAuth } from 'whatsapp-web.js';
+import { Message, Client } from "whatsapp-web.js"
 import { defaultMessages } from './const.js';
 import { sleep } from '../tools/timeFunctions.js';
-import { writeLogs } from '../tools/archivesFunctions.js';
-import "dotenv/config"
-// import { getMessageByTitle } from '../config';
-// import { DefaultMessage } from '../generated/prisma';
+import geminiResponse from '../gemini/gemini.js';
+import prisma from "../config/index.js";
+import { createUser, deleteUser, findAllUser, findUser, updateUser } from "../repository/user.js";
+import { createMessage, findMessage } from "../repository/message.js";
 
-// const { LocalAuth } = Whatsapp;
+
 
 const longTime = 3000;
 const smallTime = 1000;
@@ -33,7 +34,7 @@ interface Users {
     timestamp: number;
     isBotStoped: boolean;
     welcome: boolean;
-    menuAlredSent: boolean;
+    messageFromBot: boolean
   }
 }
 
@@ -44,8 +45,21 @@ class WhatsappService {
   private users: Users = {};
 
   constructor() {
-    // this.client = new Client({ authStrategy: new LocalAuth() });
-    this.client = new Client(clientConfigs);
+    this.client = new Client({
+      puppeteer: {
+        headless: true, args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-extensions'
+        ]
+      }
+    });
     this.setupListeners()
   }
 
@@ -56,26 +70,36 @@ class WhatsappService {
     })
 
     this.client.on("authenticated", () => {
+      console.log("autenticado")
       this.isAuthenticated = true;
       this.qrCode = null;
     })
 
-    // this.client.on("ready", () => {
-    // })
+    this.client.on("disconnected", (reason) => {
+      console.log("desconectado");
+      console.log("Motivo:", reason);
+      this.isAuthenticated = false;
+    });
+
+
+    this.client.on("ready", () => {
+      console.log("cliente ready")
+    })
 
     this.client.on("message_create", async (message) => {
       try {
         await this.sendingMessages(message)
       } catch (e) {
-        throw { message: "Erro ao enviar mensagem", statusCode: 404 }
+        console.log("Erro ao enviar mensagem", e)
       }
     })
 
-    //TODO
-    setInterval(() => {
-      for (let key of Object.keys(this.users)) {
-        if (Date.now() - (this.users[key].timestamp * 1000) > (1 * oneHour)) {
-          delete this.users[key]
+    setInterval(async() => {
+      const users = await findAllUser();
+      if(!users) return;
+      for (let user of users) {
+        if (Math.ceil(Date.now() / 1000) - Number(user.timestamp) > 60 * 60) {
+          await deleteUser(user.number)
         }
       }
     }, oneHour)
@@ -123,6 +147,8 @@ class WhatsappService {
     const messageTo = message.to;
     const messageFrom = message.from;
 
+    console.log({ isMe, contentMessage, messageTo, messageFrom })
+
     const send = async (text: string, number: string = messageFrom) => {
       this.users[number] = {...this.users[number], timestamp: message.timestamp}
       try{
@@ -132,113 +158,78 @@ class WhatsappService {
       }
     }
 
-    const desactiveResponse = (number: string) => {
-      this.users[number] = { ...this.users[number], isBotStoped: true }
-    }
 
-    const activeResponse = (number: string) => {
-      if (this.users[number]) delete this.users[number]
-    }
+    const gree = "559891402255"
+    const felipe = "559887835523"
+    const leo = "559884786375"
 
-    const checkInterruption = () => {
-      let isInterruption = true;
-      for (let key in defaultMessages) {
-        if (defaultMessages[key] === contentMessage) {
-          isInterruption = false;
-          break;
-        }
+    // restrições para quando a mensagem for enviada pelo atendente
+    if (isMe) {
+      
+      let userData = await createUser({
+        number: messageTo,
+        wasWelcome: true,
+        timestamp: BigInt(message.timestamp),
+        isBotStoped: false,
+        lastMessageFromBot: false,
+      })
+
+      
+      if (contentMessage === defaultMessages.finish) {
+        userData = await updateUser(messageTo, {isBotStoped: false, lastMessageFromBot: true});
       }
-      if (isInterruption) desactiveResponse(messageTo)
 
-    }
-
-    if (isMe) checkInterruption();
-
-    if (isMe && contentMessage === defaultMessages.finish) {
-      activeResponse(messageTo);
-    }
-
-    if (isMe && contentMessage === defaultMessages.reserved) {
-        this.users[messageTo] = {...this.users[messageTo], menuAlredSent: true};
-        await sleep(smallTime);
+      if (contentMessage === defaultMessages.reserved) {
         await send(defaultMessages?.info, messageTo);
         await sleep(smallTime);
         await send(defaultMessages?.promotional, messageTo);
         await sleep(smallTime);
         await send(defaultMessages?.more, messageTo)
+      }
+
+      if(!userData?.lastMessageFromBot){
+        await updateUser(messageTo, {isBotStoped: true})
+      }
+
+      await updateUser(messageTo, {lastMessageFromBot: false})
+      await createMessage({userNumber: messageTo, text: contentMessage, from: "me"})
     }
 
-    // && messageFrom.includes("559891402255")
+    if (
+      !isMe &&
+      messageFrom.includes("@c.us") &&
+      contentMessage 
+      // && messageFrom.includes(felipe)
+    ) {
+      // inserindo dados padrão para novas conversas
+      const userData = await createUser({
+        number: messageFrom,
+        wasWelcome: true,
+        timestamp: BigInt(message.timestamp),
+        isBotStoped: false,
+        lastMessageFromBot: false,
+      })
 
-    if (!isMe && messageFrom.includes("@c.us")) {
+      if(!userData) return
 
+      await createMessage({userNumber: messageFrom, from: "client", text: contentMessage});
+      
+      const messagesData = await findMessage(messageFrom) || []
 
-      // 1  — Tarifários
-      // 2  — Informativos
-      // 3  — Reservas
-      // 4  — Localização
-      // 5  — Solicitar Nota Fiscal
-      // 6  — Falar com um atendente
+      
+      if (!userData.isBotStoped) {
+        await updateUser(messageFrom, { lastMessageFromBot: true })
+        const messageContext = messagesData?.map(msg=>`${msg.from}: ${msg.text}`).join("/n")
 
-      if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: false, menuAlredSent: false });
+        const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
+        
+        await sleep(3500);
+        await send(response);
 
-      if (!this.users[messageFrom].isBotStoped) {        
-        switch (contentMessage.trim()) {
-          case "1":
-            await send(defaultMessages?.tariffs);
-            await send(defaultMessages?.promotional);
-            await sleep(longTime)
-            await send(defaultMessages?.menu);
-            this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: false};
-            break
-
-          case "2":
-            await send(defaultMessages?.info);
-            await sleep(longTime)
-            await send(defaultMessages?.menu);
-            this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: false};
-            break;
-
-          case "3":
-            await send(defaultMessages?.reservation);
-            desactiveResponse(messageFrom);
-            break
-
-          case "4":
-            await send(defaultMessages?.localization);
-            await sleep(longTime)
-            await send(defaultMessages?.menu);
-            this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: false};
-            break;
-
-          case "5":
-            await send(defaultMessages?.invoice);
-            desactiveResponse(messageFrom);
-            break
-          
-          case "6":
-            await send(defaultMessages?.event_value)
-            await sleep(smallTime)
-            await send(defaultMessages?.event_reservation)
-            desactiveResponse(messageFrom)
-            break
-
-          case "7":
-            await send(defaultMessages?.wait);
-            desactiveResponse(messageFrom);
-            break
-
-          default:
-            if(contentMessage.length > 0){
-              if(!this.users[messageFrom].welcome){
-                this.users[messageFrom] = {...this.users[messageFrom], welcome: true}
-                await send(defaultMessages?.start);
-              }else if(!this.users[messageFrom].menuAlredSent){
-                this.users[messageFrom] = {...this.users[messageFrom], menuAlredSent: true}
-                await send(defaultMessages?.selectNumber);
-              }
-            }
-            break;
+        if (userData.wasWelcome) await updateUser(userData.number, { wasWelcome: false });
+        
+        if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
+          await updateUser(messageFrom, { isBotStoped: true })
         }
       }
     }
