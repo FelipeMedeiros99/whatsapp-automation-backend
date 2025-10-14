@@ -219,7 +219,7 @@ class WhatsappService {
       
       if (!userData.isBotStoped) {
         await updateUser(messageFrom, { lastMessageFromBot: true })
-        const messageContext = messagesData?.map(msg=>`${msg.from}: ${msg.text}`).join("/n")
+        const messageContext = messagesData?.map((msg:{from: string, text: string})=>`${msg.from}: ${msg.text}`).join("/n")
 
         const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
         
