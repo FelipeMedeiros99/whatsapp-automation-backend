@@ -6,3 +6,5 @@ node_modules
 /sessions
 
 /src/generated/prisma
+
+/generated/prisma

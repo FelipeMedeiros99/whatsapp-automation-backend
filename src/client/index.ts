@@ -3,6 +3,9 @@ import { Message, Client } from "whatsapp-web.js"
 import { defaultMessages } from './const.js';
 import { sleep } from '../tools/timeFunctions.js';
 import geminiResponse from '../gemini/gemini.js';
+import prisma from "../config/index.js";
+import { createUser, deleteUser, findAllUser, findUser, updateUser } from "../repository/user.js";
+import { createMessage, findMessage } from "../repository/message.js";
 
 
 
@@ -74,10 +77,12 @@ class WhatsappService {
       }
     })
 
-    setInterval(() => {
-      for (let key of Object.keys(this.users)) {
-        if (Math.ceil(Date.now() / 1000) - this.users[key].timestamp > 60 * 60) {
-          delete this.users[key]
+    setInterval(async() => {
+      const users = await findAllUser();
+      if(!users) return;
+      for (let user of users) {
+        if (Math.ceil(Date.now() / 1000) - Number(user.timestamp) > 60 * 60) {
+          await deleteUser(user.number)
         }
       }
     }, 60 * 1000)
@@ -126,22 +131,21 @@ class WhatsappService {
 
     // restrições para quando a mensagem for enviada pelo atendente
     if (isMe) {
-      // Iniciando bot caso a mensagem seja de finalização de chat
-      if (contentMessage === defaultMessages.finish) {
-        this.users[messageTo].isBotStoped = false;
-        this.users[messageTo].messageFromBot = true
+      
+      let userData = await createUser({
+        number: messageTo,
+        wasWelcome: true,
+        timestamp: BigInt(message.timestamp),
+        isBotStoped: false,
+        lastMessageFromBot: false,
+      })
 
+      
+      if (contentMessage === defaultMessages.finish) {
+        userData = await updateUser(messageTo, {isBotStoped: false, lastMessageFromBot: true});
       }
 
-      // Reiniciando o bot em caso de finalização de reserva
-      else if (contentMessage === defaultMessages.reserved) {
-        // const response = await geminiResponse("", "confirmReservation") || ""
-        // const sleepTime = response!.length / 0.004;
-        // const maxTime = 6000
-
-        // await sleep(sleepTime < maxTime ? sleepTime : maxTime);
-        // await send(response, messageTo)
-
+      if (contentMessage === defaultMessages.reserved) {
         await send(defaultMessages?.info, messageTo);
         await sleep(smallTime);
         await send(defaultMessages?.promotional, messageTo);
@@ -149,89 +153,52 @@ class WhatsappService {
         await send(defaultMessages?.more, messageTo)
       }
 
-      // parando o bot caso a mensagem seja enviada por um atendente
-      if (!this.users[messageTo].messageFromBot) {
-        this.users[messageTo].isBotStoped = true
+      if(!userData?.lastMessageFromBot){
+        await updateUser(messageTo, {isBotStoped: true})
       }
 
-      this.users[messageTo].messageFromBot = false
-
+      await updateUser(messageTo, {lastMessageFromBot: false})
+      await createMessage({userNumber: messageTo, text: contentMessage, from: "me"})
     }
 
     if (
       !isMe &&
       messageFrom.includes("@c.us") &&
-      contentMessage
+      contentMessage 
+      // && messageFrom.includes(felipe)
     ) {
-
       // inserindo dados padrão para novas conversas
-      if (!this.users[messageFrom]) {
-        this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: true, messageFromBot: false });
-      } else {
-        this.users[messageFrom].timestamp = message.timestamp;
-      }
+      const userData = await createUser({
+        number: messageFrom,
+        wasWelcome: true,
+        timestamp: BigInt(message.timestamp),
+        isBotStoped: false,
+        lastMessageFromBot: false,
+      })
 
-      // Resposta da IA
-      if (!this.users[messageFrom].isBotStoped) {
-        this.users[messageFrom].messageFromBot = true;
-        const response = await geminiResponse(contentMessage, this.users[messageFrom].welcome ? "welcome" : "default") || ""
-        const sleepTime = response!.length / 0.004;
-        const maxTime = 3500
+      if(!userData) return
 
-        await sleep(sleepTime < maxTime ? sleepTime : maxTime);
-        await send(response)
+      await createMessage({userNumber: messageFrom, from: "client", text: contentMessage});
+      
+      const messagesData = await findMessage(messageFrom) || []
 
-        if (this.users[messageFrom].welcome) this.users[messageFrom].welcome = false
-        const messageLowerCase = response.toLocaleLowerCase()
-        if (messageLowerCase.includes("irei repassar você para um atendente")) {
-          this.users[messageFrom].isBotStoped = true;
+      
+      if (!userData.isBotStoped) {
+        await updateUser(messageFrom, { lastMessageFromBot: true })
+        const messageContext = messagesData?.map(msg=>`${msg.from}: ${msg.text}`).join("/n")
+
+        const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
+        
+        await sleep(3500);
+        await send(response);
+
+        if (userData.wasWelcome) await updateUser(userData.number, { wasWelcome: false });
+        
+        if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
+          await updateUser(messageFrom, { isBotStoped: true })
         }
       }
     }
-
-
-
-
-
-
-
-
-    // const desactiveResponse = (number: string) => {
-    //   this.users[number] = { ...this.users[number], isBotStoped: true }
-    // }
-
-    // const activeResponse = (number: string) => {
-    //   if (this.users[number]) delete this.users[number]
-    // }
-
-    // if (isMe && contentMessage === defaultMessages.finish) {
-    //   activeResponse(messageTo);
-    // }
-
-    // if (isMe && contentMessage === defaultMessages.reserved) {
-    //   await sleep(smallTime);
-    //   await send(defaultMessages?.info, messageTo);
-    //   await sleep(smallTime);
-    //   await send(defaultMessages?.promotional, messageTo);
-    //   await sleep(smallTime);
-    //   await send(defaultMessages?.more, messageTo)
-    // }
-
-    // && messageFrom.includes("559891402255")
-
-    // if (!isMe && (messageFrom.includes("@c.us") || messageFrom.includes("@lid"))  && messageFrom.includes("559891402255")) {
-    //   console.log("1")
-
-    //   if (!this.users[messageFrom]) this.users[messageFrom] = ({ timestamp: message.timestamp, isBotStoped: false, welcome: false, menuAlredSent: false });
-    //   console.log("2")
-    //   if (!this.users[messageFrom].isBotStoped) {
-    //     console.log("3")
-    //     const response = await geminiResponse(contentMessage)
-    //     console.log(response)
-    //     await send(response!)
-    //     console.log(response)
-    //   }
-    // }
   }
 }
 
