@@ -12,6 +12,7 @@ import { createMessage, findMessage } from "../repository/message.js";
 const longTime = 3000;
 const smallTime = 1000;
 const oneHour = 60 * 60 * 1000
+const oneDay = oneHour * 24
 
 const clientConfigs = {
   puppeteer: {
@@ -95,14 +96,26 @@ class WhatsappService {
     })
 
     setInterval(async() => {
+      // limpando banco depois de 1 mês de inatividade
       const users = await findAllUser();
       if(!users) return;
       for (let user of users) {
-        if (Math.ceil(Date.now() / 1000) - Number(user.timestamp) > 60 * 60) {
+        if (Date.now() - Number(user.timestamp) * 1000 > oneDay * 30 /** apagar depopis de 1 mês */) {
           await deleteUser(user.number)
         }
       }
-    }, oneHour)
+    }, oneDay)
+
+    setInterval(async() => {
+      // Reativando chat depois de 2h sem conversa
+      const users = await findAllUser();
+      if(!users) return;
+      for (let user of users) {
+        if (Date.now() - Number(user.timestamp) * 1000 > oneHour * 2) {
+          await updateUser(user.number, {isBotStoped: false})
+        }
+      }
+    }, oneDay)
   }
 
   async connect(): Promise<string> {
