@@ -6,6 +6,7 @@ import geminiResponse from '../gemini/gemini.js';
 import prisma from "../config/index.js";
 import { createUser, deleteUser, findAllUser, findUser, updateUser } from "../repository/user.js";
 import { createMessage, findMessage } from "../repository/message.js";
+import { User } from "@prisma/client";
 
 
 
@@ -95,10 +96,10 @@ class WhatsappService {
       }
     })
 
-    setInterval(async() => {
+    setInterval(async () => {
       // limpando banco depois de 1 mês de inatividade
       const users = await findAllUser();
-      if(!users) return;
+      if (!users) return;
       for (let user of users) {
         if (Date.now() - Number(user.timestamp) * 1000 > oneDay * 30 /** apagar depopis de 1 mês */) {
           await deleteUser(user.number)
@@ -106,25 +107,25 @@ class WhatsappService {
       }
     }, oneDay)
 
-    setInterval(async() => {
+    setInterval(async () => {
       // Reativando chat depois de 2h sem conversa
       const users = await findAllUser();
-      if(!users) return;
+      if (!users) return;
       for (let user of users) {
         if (Date.now() - Number(user.timestamp) * 1000 > oneHour * 2) {
-          await updateUser(user.number, {isBotStoped: false})
+          await updateUser(user.number, { isBotStoped: false })
         }
       }
     }, oneDay)
   }
 
   async connect(): Promise<string> {
-    try{
-      if(this.client && this.client.info && this.client.destroy){
+    try {
+      if (this.client && this.client.info && this.client.destroy) {
         this.client.destroy()
       }
       await this.client.initialize();
-      
+
       return new Promise((resolve) => {
         const checkQrCode = setInterval(() => {
           if (this.qrCode) {
@@ -133,9 +134,9 @@ class WhatsappService {
           }
         }, 2000);
       });
-    }catch(e){
+    } catch (e) {
       console.log("Erro ao tentear se conectar")
-      return("erro ao tentar se conectar")
+      return ("erro ao tentar se conectar")
     }
   }
 
@@ -163,10 +164,10 @@ class WhatsappService {
     console.log({ isMe, contentMessage, messageTo, messageFrom })
 
     const send = async (text: string, number: string = messageFrom) => {
-      this.users[number] = {...this.users[number], timestamp: message.timestamp}
-      try{
+      this.users[number] = { ...this.users[number], timestamp: message.timestamp }
+      try {
         await this.client.sendMessage(number, text)
-      }catch(e){
+      } catch (e) {
         console.log("erro ao enviar mensagem: ", e)
       }
     }
@@ -178,7 +179,7 @@ class WhatsappService {
 
     // restrições para quando a mensagem for enviada pelo atendente
     if (isMe) {
-      
+
       let userData = await createUser({
         number: messageTo,
         wasWelcome: true,
@@ -187,9 +188,9 @@ class WhatsappService {
         lastMessageFromBot: false,
       })
 
-      
+
       if (contentMessage === defaultMessages.finish) {
-        userData = await updateUser(messageTo, {isBotStoped: false, lastMessageFromBot: true});
+        userData = await updateUser(messageTo, { isBotStoped: false, lastMessageFromBot: true });
       }
 
       if (contentMessage === defaultMessages.reserved) {
@@ -200,19 +201,18 @@ class WhatsappService {
         await send(defaultMessages?.more, messageTo)
       }
 
-      if(!userData?.lastMessageFromBot){
-        await updateUser(messageTo, {isBotStoped: true})
+      if (!userData?.lastMessageFromBot) {
+        await updateUser(messageTo, { isBotStoped: true })
       }
 
-      await updateUser(messageTo, {lastMessageFromBot: false})
-      await createMessage({userNumber: messageTo, text: contentMessage, from: "me"})
+      await updateUser(messageTo, { lastMessageFromBot: false })
+      await createMessage({ userNumber: messageTo, text: contentMessage, from: "me" })
     }
 
     if (
       !isMe &&
       messageFrom.includes("@c.us") &&
-      contentMessage 
-      // && messageFrom.includes(felipe)
+      contentMessage
     ) {
       // inserindo dados padrão para novas conversas
       const userData = await createUser({
@@ -223,28 +223,56 @@ class WhatsappService {
         lastMessageFromBot: false,
       })
 
-      if(!userData) return
+      if (!userData) return
 
-      await createMessage({userNumber: messageFrom, from: "client", text: contentMessage});
-      
-      const messagesData = await findMessage(messageFrom) || []
+      await createMessage({ userNumber: messageFrom, from: "client", text: contentMessage });
 
-      
       if (!userData.isBotStoped) {
-        await updateUser(messageFrom, { lastMessageFromBot: true })
-        const messageContext = messagesData?.map((msg:{from: string, text: string})=>`${msg.from}: ${msg.text}`).join("/n")
+        // Evitando respostas grades para mensagens repartidas
+        setTimeout(async () => {
+          try{
+          const messagesData = await findMessage(messageFrom)
+          if(!messagesData) return;
 
-        const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
-        
-        await sleep(3500);
-        await send(response);
-        await updateUser(messageFrom, {isBotStoped: false})
+          if (messagesData[0]?.from === "client") {
+            
+            let updateUserData: Partial<User> = {isBotStoped: false, lastMessageFromBot: true}
 
-        if (userData.wasWelcome) await updateUser(userData.number, { wasWelcome: false });
-        
-        if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
-          await updateUser(messageFrom, { isBotStoped: true })
-        }
+            const messageContext = messagesData?.map((msg: { from: string, text: string }) => `${msg.from}: ${msg.text}`).join("/n")
+            
+            const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
+            
+            await send(response);
+            
+            if (userData.wasWelcome) updateUserData.wasWelcome = false;
+            
+            if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
+               updateUserData.isBotStoped = true;
+            }
+
+            await updateUser(messageFrom, updateUserData)          
+          }
+
+          }catch(e){
+            console.log("erro ao enviar mensagem: ", e)
+          }
+
+        }, 6000);
+
+        // await updateUser(messageFrom, { lastMessageFromBot: true })
+        // const messageContext = messagesData?.map((msg:{from: string, text: string})=>`${msg.from}: ${msg.text}`).join("/n")
+
+        // const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
+
+        // await sleep(3500);
+        // await send(response);
+        // await updateUser(messageFrom, {isBotStoped: false})
+
+        // if (userData.wasWelcome) await updateUser(userData.number, { wasWelcome: false });
+
+        // if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
+        //   await updateUser(messageFrom, { isBotStoped: true })
+        // }
       }
     }
   }
