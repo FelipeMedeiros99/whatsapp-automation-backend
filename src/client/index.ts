@@ -221,7 +221,7 @@ class WhatsappService {
       contentMessage
     ) {
       // inserindo dados padrão para novas conversas
-      const userData = await createUser({
+      const userDataPromise = createUser({
         number: messageFrom,
         wasWelcome: true,
         timestamp: BigInt(message.timestamp),
@@ -229,10 +229,12 @@ class WhatsappService {
         lastMessageFromBot: false,
         timeoutId: null
       })
+      const createMessagePromise = createMessage({ userNumber: messageFrom, from: "client", text: contentMessage });
 
+      const [userData] = await Promise.all([userDataPromise, createMessagePromise]);
+      
       if (!userData) return
 
-      await createMessage({ userNumber: messageFrom, from: "client", text: contentMessage });
 
       if (!userData.isBotStoped) {
         if(userData.timeoutId){
@@ -241,18 +243,23 @@ class WhatsappService {
         // Evitando resposta unica para mensagens repartidas
         const userTimeout = setTimeout(async () => {
           try {
-            await updateUser(messageFrom, {timeoutId: null})
+            const updateTimeoutuser = updateUser(messageFrom, {timeoutId: null})
             const messagesData = await findMessage(messageFrom)
-            if (!messagesData) return;
+            if (!messagesData) {
+              await updateTimeoutuser;
+              return;
+            }
 
-            if (messagesData[0]?.from === "client") {
+            if (messagesData[messagesData.length - 1]?.from === "client") {
 
-              let updateUserData: Partial<User> = { isBotStoped: false, lastMessageFromBot: true }
+              let updateUserData: Partial<User> = { isBotStoped: false, lastMessageFromBot: true, timeoutId: null }
 
               const messageContext = messagesData?.map((msg: { from: string, text: string }) => `${msg.from}: ${msg.text}`).join("/n")
 
-              const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
+              const geminiPromise = geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default")
 
+              await updateTimeoutuser;
+              const response = await geminiPromise || "";
               await send(response);
 
               if (userData.wasWelcome) updateUserData.wasWelcome = false;
@@ -269,7 +276,7 @@ class WhatsappService {
           }
 
           
-        }, 3500);
+        }, 3000);
         await updateUser(messageFrom, {timeoutId: Number(userTimeout)})
       }
     }
