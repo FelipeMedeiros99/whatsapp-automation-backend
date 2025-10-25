@@ -257,7 +257,7 @@ class WhatsappService {
             console.log("erro ao enviar mensagem: ", e)
           }
 
-        }, 6000);
+        }, 5000);
 
         // await updateUser(messageFrom, { lastMessageFromBot: true })
         // const messageContext = messagesData?.map((msg:{from: string, text: string})=>`${msg.from}: ${msg.text}`).join("/n")
