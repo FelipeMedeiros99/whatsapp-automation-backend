@@ -44,7 +44,7 @@ class WhatsappService {
   private client: Client;
   private qrCode: string | null = null;
   private isAuthenticated: boolean = false;
-  private users: Users = {};
+  // private users: Users = {};
 
   constructor() {
     this.client = new Client({
@@ -164,7 +164,7 @@ class WhatsappService {
     console.log({ isMe, contentMessage, messageTo, messageFrom })
 
     const send = async (text: string, number: string = messageFrom) => {
-      this.users[number] = { ...this.users[number], timestamp: message.timestamp }
+      // this.users[number] = { ...this.users[number], timestamp: message.timestamp }
       try {
         await this.client.sendMessage(number, text)
       } catch (e) {
@@ -228,36 +228,39 @@ class WhatsappService {
       await createMessage({ userNumber: messageFrom, from: "client", text: contentMessage });
 
       if (!userData.isBotStoped) {
-        // Evitando respostas grades para mensagens repartidas
+        // Evitando resposta unica para mensagens repartidas
         setTimeout(async () => {
-          try{
-          const messagesData = await findMessage(messageFrom)
-          if(!messagesData) return;
+          try {
+            const userPromise = findUser(messageFrom)
+            const messagePromise = findMessage(messageFrom)
+            const [userData, messagesData] = await Promise.all([userPromise, messagePromise]);
+            if (!messagesData || !userData) return;
 
-          if (messagesData[0]?.from === "client") {
-            
-            let updateUserData: Partial<User> = {isBotStoped: false, lastMessageFromBot: true}
+            if (messagesData[0]?.from === "client" && !userData.lastMessageFromBot) {
+              await updateUser(messageFrom, {lastMessageFromBot: true})
 
-            const messageContext = messagesData?.map((msg: { from: string, text: string }) => `${msg.from}: ${msg.text}`).join("/n")
-            
-            const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
-            
-            await send(response);
-            
-            if (userData.wasWelcome) updateUserData.wasWelcome = false;
-            
-            if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
-               updateUserData.isBotStoped = true;
+              let updateUserData: Partial<User> = { isBotStoped: false, lastMessageFromBot: true }
+
+              const messageContext = messagesData?.map((msg: { from: string, text: string }) => `${msg.from}: ${msg.text}`).join("/n")
+
+              const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
+
+              await send(response);
+
+              if (userData.wasWelcome) updateUserData.wasWelcome = false;
+
+              if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
+                updateUserData.isBotStoped = true;
+              }
+
+              await updateUser(messageFrom, updateUserData)
             }
 
-            await updateUser(messageFrom, updateUserData)          
-          }
-
-          }catch(e){
+          } catch (e) {
             console.log("erro ao enviar mensagem: ", e)
           }
 
-        }, 5000);
+        }, 4000);
 
         // await updateUser(messageFrom, { lastMessageFromBot: true })
         // const messageContext = messagesData?.map((msg:{from: string, text: string})=>`${msg.from}: ${msg.text}`).join("/n")
