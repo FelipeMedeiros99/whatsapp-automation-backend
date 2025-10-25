@@ -17,6 +17,8 @@ model User{
   wasWelcome          Boolean       
   lastMessageFromBot  Boolean
 
+  timeoutId           Int?
+
   message       Message[]
 
   @@map("user")

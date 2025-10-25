@@ -186,14 +186,20 @@ class WhatsappService {
         timestamp: BigInt(message.timestamp),
         isBotStoped: false,
         lastMessageFromBot: false,
+        timeoutId: null
       })
+
+      let userUpdateData: Partial<User> = {lastMessageFromBot: false}
 
 
       if (contentMessage === defaultMessages.finish) {
-        userData = await updateUser(messageTo, { isBotStoped: false, lastMessageFromBot: true });
+        userUpdateData.isBotStoped = false;
+        userUpdateData.lastMessageFromBot = true;
+        // userData = await updateUser(messageTo, { isBotStoped: false, lastMessageFromBot: true });
       }
 
       if (contentMessage === defaultMessages.reserved) {
+        await sleep(smallTime)
         await send(defaultMessages?.info, messageTo);
         await sleep(smallTime);
         await send(defaultMessages?.promotional, messageTo);
@@ -202,11 +208,11 @@ class WhatsappService {
       }
 
       if (!userData?.lastMessageFromBot) {
-        await updateUser(messageTo, { isBotStoped: true })
+        userUpdateData.isBotStoped = true;
+        // await updateUser(messageTo, { isBotStoped: true })
       }
 
-      await updateUser(messageTo, { lastMessageFromBot: false })
-      await createMessage({ userNumber: messageTo, text: contentMessage, from: "me" })
+      await Promise.all([updateUser(messageTo, userUpdateData), createMessage({ userNumber: messageTo, text: contentMessage, from: "me" })]);
     }
 
     if (
@@ -221,6 +227,7 @@ class WhatsappService {
         timestamp: BigInt(message.timestamp),
         isBotStoped: false,
         lastMessageFromBot: false,
+        timeoutId: null
       })
 
       if (!userData) return
@@ -228,16 +235,17 @@ class WhatsappService {
       await createMessage({ userNumber: messageFrom, from: "client", text: contentMessage });
 
       if (!userData.isBotStoped) {
+        if(userData.timeoutId){
+          clearTimeout(userData.timeoutId)
+        }
         // Evitando resposta unica para mensagens repartidas
-        setTimeout(async () => {
+        const userTimeout = setTimeout(async () => {
           try {
-            const userPromise = findUser(messageFrom)
-            const messagePromise = findMessage(messageFrom)
-            const [userData, messagesData] = await Promise.all([userPromise, messagePromise]);
-            if (!messagesData || !userData) return;
+            await updateUser(messageFrom, {timeoutId: null})
+            const messagesData = await findMessage(messageFrom)
+            if (!messagesData) return;
 
-            if (messagesData[0]?.from === "client" && !userData.lastMessageFromBot) {
-              await updateUser(messageFrom, {lastMessageFromBot: true})
+            if (messagesData[0]?.from === "client") {
 
               let updateUserData: Partial<User> = { isBotStoped: false, lastMessageFromBot: true }
 
@@ -260,22 +268,9 @@ class WhatsappService {
             console.log("erro ao enviar mensagem: ", e)
           }
 
-        }, 4000);
-
-        // await updateUser(messageFrom, { lastMessageFromBot: true })
-        // const messageContext = messagesData?.map((msg:{from: string, text: string})=>`${msg.from}: ${msg.text}`).join("/n")
-
-        // const response = await geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default") || ""
-
-        // await sleep(3500);
-        // await send(response);
-        // await updateUser(messageFrom, {isBotStoped: false})
-
-        // if (userData.wasWelcome) await updateUser(userData.number, { wasWelcome: false });
-
-        // if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
-        //   await updateUser(messageFrom, { isBotStoped: true })
-        // }
+          
+        }, 3500);
+        await updateUser(messageFrom, {timeoutId: Number(userTimeout)})
       }
     }
   }
