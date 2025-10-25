@@ -188,13 +188,18 @@ class WhatsappService {
         lastMessageFromBot: false,
         timeoutId: null
       })
+      if(!userData) return;
 
-      let userUpdateData: Partial<User> = {lastMessageFromBot: false}
+      // let userUpdateData: Partial<User> = {lastMessageFromBot: false}
 
 
       if (contentMessage === defaultMessages.finish) {
-        userUpdateData.isBotStoped = false;
-        userUpdateData.lastMessageFromBot = true;
+        // const promiseUpdateuser1 = updateUser(messageTo, {isBotStoped: false, lastMessageFromBot: true});
+        userData.isBotStoped = false;
+        userData.lastMessageFromBot = true
+
+        // userUpdateData.isBotStoped = false;
+        // userUpdateData.lastMessageFromBot = true;
         // userData = await updateUser(messageTo, { isBotStoped: false, lastMessageFromBot: true });
       }
 
@@ -208,11 +213,13 @@ class WhatsappService {
       }
 
       if (!userData?.lastMessageFromBot) {
-        userUpdateData.isBotStoped = true;
+        // const promiseUpdateuser2 = updateUser(messageTo, {isBotStoped: true})
+        userData.isBotStoped = true;
         // await updateUser(messageTo, { isBotStoped: true })
       }
+      userData.lastMessageFromBot = false;
 
-      await Promise.all([updateUser(messageTo, userUpdateData), createMessage({ userNumber: messageTo, text: contentMessage, from: "me" })]);
+      await Promise.all([updateUser(messageTo, userData), createMessage({ userNumber: messageTo, text: contentMessage, from: "me" })]);
     }
 
     if (

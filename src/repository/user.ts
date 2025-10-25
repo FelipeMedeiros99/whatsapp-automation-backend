@@ -26,7 +26,7 @@ export async function findUser(number: string) {
 }
 
 
-export async function createUser(data: Omit<User, "id">) {
+export async function createUser(data: User) {
   try {
     return await prisma.user.upsert({
       where: {
