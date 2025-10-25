@@ -35,3 +35,12 @@ model Message{
 
   @@map("message")
 }
+
+
+model GeminiRestriction{
+  id            Int @id @default(autoincrement())
+  title         String
+  restriction   String
+
+  @@map("gemini-restrictions")
+}

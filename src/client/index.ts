@@ -276,7 +276,7 @@ class WhatsappService {
           }
 
           
-        }, 3000);
+        }, 1500);
         await updateUser(messageFrom, {timeoutId: Number(userTimeout)})
       }
     }
