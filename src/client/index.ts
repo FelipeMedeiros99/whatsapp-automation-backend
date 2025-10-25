@@ -135,7 +135,7 @@ class WhatsappService {
         }, 2000);
       });
     } catch (e) {
-      console.log("Erro ao tentear se conectar")
+      console.log("Erro ao tentear se conectar", e)
       return ("erro ao tentar se conectar")
     }
   }
