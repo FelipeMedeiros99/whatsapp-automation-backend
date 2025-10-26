@@ -45,7 +45,7 @@ export async function createUser(data: User) {
   }
 }
 
-export async function updateUser(number: string, data: Partial<Omit<User, "id">>) {
+export async function updateUser(number: string, data: Partial<User>) {
   try{
     return await prisma.user.update({
       where: {

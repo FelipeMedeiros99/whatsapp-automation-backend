@@ -218,8 +218,9 @@ class WhatsappService {
         // await updateUser(messageTo, { isBotStoped: true })
       }
       userData.lastMessageFromBot = false;
+      const {number, wasWelcome, timestamp, timeoutId, ...userDataToUpdate} = userData
 
-      await Promise.all([updateUser(messageTo, userData), createMessage({ userNumber: messageTo, text: contentMessage, from: "me" })]);
+      await Promise.all([updateUser(messageTo, {...userDataToUpdate}), createMessage({ userNumber: messageTo, text: contentMessage, from: "me" })]);
     }
 
     if (
@@ -239,15 +240,15 @@ class WhatsappService {
       const createMessagePromise = createMessage({ userNumber: messageFrom, from: "client", text: contentMessage });
 
       const [userData] = await Promise.all([userDataPromise, createMessagePromise]);
-      
       if (!userData) return
 
+      const { isBotStoped, timeoutId, wasWelcome} = userData;
 
-      if (!userData.isBotStoped) {
-        if(userData.timeoutId){
-          clearTimeout(userData.timeoutId)
+      if (!isBotStoped) {
+        if(timeoutId){
+          clearTimeout(timeoutId)
         }
-        // Evitando resposta unica para mensagens repartidas
+        
         const userTimeout = setTimeout(async () => {
           try {
             const updateTimeoutuser = updateUser(messageFrom, {timeoutId: null})
@@ -259,17 +260,17 @@ class WhatsappService {
 
             if (messagesData[messagesData.length - 1]?.from === "client") {
 
-              let updateUserData: Partial<User> = { isBotStoped: false, lastMessageFromBot: true, timeoutId: null }
+              let updateUserData: Partial<User> = { isBotStoped: false, lastMessageFromBot: true}
 
               const messageContext = messagesData?.map((msg: { from: string, text: string }) => `${msg.from}: ${msg.text}`).join("/n")
 
-              const geminiPromise = geminiResponse(messageContext, userData.wasWelcome ? "welcome" : "default")
+              const geminiPromise = geminiResponse(messageContext, wasWelcome ? "welcome" : "default")
 
               await updateTimeoutuser;
               const response = await geminiPromise || "";
               await send(response);
 
-              if (userData.wasWelcome) updateUserData.wasWelcome = false;
+              if (wasWelcome) updateUserData.wasWelcome = false;
 
               if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
                 updateUserData.isBotStoped = true;
@@ -281,9 +282,8 @@ class WhatsappService {
           } catch (e) {
             console.log("erro ao enviar mensagem: ", e)
           }
-
-          
         }, 1500);
+        
         await updateUser(messageFrom, {timeoutId: Number(userTimeout)})
       }
     }
