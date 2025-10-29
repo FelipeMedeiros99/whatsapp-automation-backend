@@ -11,6 +11,23 @@ import {
 import { getRestrictionController, updateRestrictionController } from "./controllers/geminiControllers.js";
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
+import { getRestrictionByTitle } from "./repository/geminiCrud.js";
+import prisma from "./config/index.js";
+
+const createRestriction = async () => {
+  try {
+    console.log("Verificando/Criando restrição padrão...");
+    const restrictions = await getRestrictionByTitle("restrictions");
+    if (!restrictions) {
+      await prisma.geminiRestriction.create({ data: { title: "restrictions", restriction: "" } });
+      console.log("Restrição padrão criada com sucesso.");
+    } else {
+      console.log("Restrição padrão já existe.");
+    }
+  } catch (error) {
+    console.error("Erro ao verificar/criar restrição padrão:", error);
+  }
+};
 
 const PORT = process.env.PORT || 5002
 const app = express()
@@ -25,6 +42,9 @@ app.put("/whatsapp/restriction/:id", updateRestrictionController)
 
 app.use(handleErrorMiddleware);
 
-app.listen(Number(PORT), () => {
-  console.log(`server running at port ${PORT}`);
-})
+(async()=>{
+  await createRestriction()
+  app.listen(Number(PORT), async () => {
+    console.log(`server running at port ${PORT}`);
+  })
+})()

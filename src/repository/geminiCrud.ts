@@ -17,8 +17,7 @@ export async function updateRestriction(id:number, data: Partial<GeminiRestricti
 
 export async function getAllRestrictions() {
   const restrictions = await prisma.geminiRestriction.findMany();
-  
-  return restrictions.map((r)=>r.restriction).join("\n")
+  return restrictions;
 }
 
 export async function getRestrictionByTitle(title: string) {
@@ -28,5 +27,5 @@ export async function getRestrictionByTitle(title: string) {
     }
   });
   
-  return restriction?.restriction
+  return restriction
 }

@@ -12,14 +12,13 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 export default async function geminiResponse(userMessage?: string) {
   try {
     const restrictions = await getRestrictionByTitle("restrictions")
-    if(!restrictions) await prisma.geminiRestriction.create({data: {title: "restrictions", restriction: ""}});
 
     const today = new Date()
     const localeDateFormat = today.toLocaleDateString("pt-BR", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
       
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `${restrictions}
+      contents: `${restrictions?.restriction}
       #INFORMAÇÃO DE DATA
       use a data atual para se basear com relação aos dias da semana: ${localeDateFormat}
 
