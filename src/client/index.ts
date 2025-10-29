@@ -1,42 +1,24 @@
-// import { Message, Client, LocalAuth } from 'whatsapp-web.js';
-import { Message, Client } from "whatsapp-web.js"
-import { defaultMessages } from './const.js';
-import { sleep } from '../tools/timeFunctions.js';
-import geminiResponse from '../gemini/gemini.js';
-import prisma from "../config/index.js";
-import { createUser, deleteUser, findAllUser, findUser, updateUser } from "../repository/user.js";
-import { createMessage, findMessage } from "../repository/message.js";
-import { User } from "@prisma/client";
+import { Client } from "whatsapp-web.js"
 
+import { deleteUser, findAllUser, updateUser } from "../repository/user.js";
+import replyMessage from "./replyMessage.js";
 
-
-const longTime = 3000;
-const smallTime = 1000;
 const oneHour = 60 * 60 * 1000
 const oneDay = oneHour * 24
 
-const clientConfigs = {
+const clientConfig = {
   puppeteer: {
     headless: true, args: [
-      //'--no-sandbox',
-      // '--disable-setuid-sandbox',
-      // '--disable-dev-shm-usage',
-      // '--disable-accelerated-2d-canvas',
-      // '--disable-gpu',
-      // '--no-first-run',
-      // '--no-zygote',
-      // '--single-process',
-      // '--disable-extensions'
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
+      '--no-first-run',
+      '--no-zygote',
+      '--single-process',
+      '--disable-extensions'
     ]
-  }
-}
-
-interface Users {
-  [key: string]: {
-    timestamp: number;
-    isBotStoped: boolean;
-    welcome: boolean;
-    messageFromBot: boolean
   }
 }
 
@@ -44,24 +26,9 @@ class WhatsappService {
   private client: Client;
   private qrCode: string | null = null;
   private isAuthenticated: boolean = false;
-  // private users: Users = {};
 
   constructor() {
-    this.client = new Client({
-      puppeteer: {
-        headless: true, args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-extensions'
-        ]
-      }
-    });
+    this.client = new Client(clientConfig);
     this.setupListeners()
   }
 
@@ -83,14 +50,13 @@ class WhatsappService {
       this.isAuthenticated = false;
     });
 
-
     this.client.on("ready", () => {
       console.log("cliente ready")
     })
 
     this.client.on("message_create", async (message) => {
       try {
-        await this.sendingMessages(message)
+        await replyMessage(message, this.client)
       } catch (e) {
         console.log("Erro ao enviar mensagem", e)
       }
@@ -144,7 +110,7 @@ class WhatsappService {
     if (this.client) {
       await this.client.destroy();
 
-      this.client = new Client(clientConfigs)
+      this.client = new Client(clientConfig)
       this.setupListeners()
 
       return await this.connect();
@@ -154,142 +120,6 @@ class WhatsappService {
   public getStatus() {
     return { isLoged: this.isAuthenticated };
   }
-
-  private async sendingMessages(message: Message) {
-    const isMe = message.id.fromMe;
-    const contentMessage = message.body;
-    const messageTo = message.to;
-    const messageFrom = message.from;
-
-    console.log({ isMe, contentMessage, messageTo, messageFrom })
-
-    const send = async (text: string, number: string = messageFrom) => {
-      // this.users[number] = { ...this.users[number], timestamp: message.timestamp }
-      try {
-        await this.client.sendMessage(number, text)
-      } catch (e) {
-        console.log("erro ao enviar mensagem: ", e)
-      }
-    }
-
-
-    const gree = "559891402255"
-    const felipe = "559887835523"
-    const leo = "559884786375"
-
-    // restrições para quando a mensagem for enviada pelo atendente
-    if (isMe) {
-
-      let userData = await createUser({
-        number: messageTo,
-        wasWelcome: true,
-        timestamp: BigInt(message.timestamp),
-        isBotStoped: false,
-        lastMessageFromBot: false,
-        timeoutId: null
-      })
-      if(!userData) return;
-
-      // let userUpdateData: Partial<User> = {lastMessageFromBot: false}
-
-
-      if (contentMessage === defaultMessages.finish) {
-        // const promiseUpdateuser1 = updateUser(messageTo, {isBotStoped: false, lastMessageFromBot: true});
-        userData.isBotStoped = false;
-        userData.lastMessageFromBot = true
-
-        // userUpdateData.isBotStoped = false;
-        // userUpdateData.lastMessageFromBot = true;
-        // userData = await updateUser(messageTo, { isBotStoped: false, lastMessageFromBot: true });
-      }
-
-      if (contentMessage === defaultMessages.reserved) {
-        await sleep(smallTime)
-        await send(defaultMessages?.info, messageTo);
-        await sleep(smallTime);
-        await send(defaultMessages?.promotional, messageTo);
-        await sleep(smallTime);
-        await send(defaultMessages?.more, messageTo)
-      }
-
-      if (!userData?.lastMessageFromBot) {
-        // const promiseUpdateuser2 = updateUser(messageTo, {isBotStoped: true})
-        userData.isBotStoped = true;
-        // await updateUser(messageTo, { isBotStoped: true })
-      }
-      userData.lastMessageFromBot = false;
-      const {number, wasWelcome, timestamp, timeoutId, ...userDataToUpdate} = userData
-
-      await Promise.all([updateUser(messageTo, {...userDataToUpdate}), createMessage({ userNumber: messageTo, text: contentMessage, from: "me" })]);
-    }
-
-    if (
-      !isMe &&
-      messageFrom.includes("@c.us") &&
-      contentMessage
-    ) {
-      // inserindo dados padrão para novas conversas
-      const userDataPromise = createUser({
-        number: messageFrom,
-        wasWelcome: true,
-        timestamp: BigInt(message.timestamp),
-        isBotStoped: false,
-        lastMessageFromBot: false,
-        timeoutId: null
-      })
-      const createMessagePromise = createMessage({ userNumber: messageFrom, from: "client", text: contentMessage });
-
-      const [userData] = await Promise.all([userDataPromise, createMessagePromise]);
-      if (!userData) return
-
-      const { isBotStoped, timeoutId, wasWelcome} = userData;
-
-      if (!isBotStoped) {
-        if(timeoutId){
-          clearTimeout(timeoutId)
-        }
-        
-        const userTimeout = setTimeout(async () => {
-          try {
-            const updateTimeoutuser = updateUser(messageFrom, {timeoutId: null})
-            const messagesData = await findMessage(messageFrom)
-            if (!messagesData) {
-              await updateTimeoutuser;
-              return;
-            }
-
-            if (messagesData[messagesData.length - 1]?.from === "client") {
-
-              let updateUserData: Partial<User> = { isBotStoped: false, lastMessageFromBot: true}
-
-              const messageContext = messagesData?.map((msg: { from: string, text: string }) => `${msg.from}: ${msg.text}`).join("/n")
-
-              const geminiPromise = geminiResponse(messageContext, wasWelcome ? "welcome" : "default")
-
-              await updateTimeoutuser;
-              const response = await geminiPromise || "";
-              await send(response);
-
-              if (wasWelcome) updateUserData.wasWelcome = false;
-
-              if (response.toLocaleLowerCase().includes("irei repassar você para um atendente")) {
-                updateUserData.isBotStoped = true;
-              }
-
-              await updateUser(messageFrom, updateUserData)
-            }
-
-          } catch (e) {
-            console.log("erro ao enviar mensagem: ", e)
-          }
-        }, 1500);
-        
-        await updateUser(messageFrom, {timeoutId: Number(userTimeout)})
-      }
-    }
-  }
 }
-
-
 
 export const client = new WhatsappService() 
