@@ -72,7 +72,7 @@ export default async function replyMessage(message: Message, client: Client) {
   if (!isMe && messageFrom.includes("@c.us") && contentMessage) {
 
     const clientChatId = messageFrom;
-    const userDataPromise = createUser({
+    const userData = await createUser({
       number: clientChatId,
       wasWelcome: true,
       timestamp: BigInt(message.timestamp),
@@ -80,8 +80,7 @@ export default async function replyMessage(message: Message, client: Client) {
       lastMessageFromBot: false,
       timeoutId: null
     })
-    const createMessagePromise = createMessage({ userNumber: clientChatId, from: "client", text: contentMessage });
-    const [userData] = await Promise.all([userDataPromise, createMessagePromise]);
+    await createMessage({ userNumber: clientChatId, from: "client", text: contentMessage });
     if (!userData) return;
     const { isBotStoped, timeoutId, wasWelcome } = userData;
 
