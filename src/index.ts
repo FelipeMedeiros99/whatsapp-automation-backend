@@ -8,6 +8,8 @@ import {
   // getAllMessagesController, 
   // updateMessageController 
 } from "./controllers/conectionControllers.js";
+import { getRestrictionController, updateRestrictionController } from "./controllers/geminiControllers.js";
+
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
 
 const PORT = process.env.PORT || 5002
@@ -17,6 +19,9 @@ app.use(json())
 
 app.get("/whatsapp/connect/", connectController);
 app.get("/whatsapp/status/", getStatusController);
+
+app.get("/whatsapp/restriction/", getRestrictionController)
+app.put("/whatsapp/restriction/:id", updateRestrictionController)
 
 app.use(handleErrorMiddleware);
 
