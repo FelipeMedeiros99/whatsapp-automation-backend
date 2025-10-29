@@ -97,7 +97,7 @@ export default async function replyMessage(message: Message, client: Client) {
           if (!messagesData) return;
     
           const messageContext = messagesData?.map((msg: { from: string, text: string }) => `${msg.from}: ${msg.text}`).join("\n")
-          const geminiResponsePromise = geminiResponse(messageContext, wasWelcome ? "welcome" : "default") || ""
+          const geminiResponsePromise = geminiResponse(messageContext) || ""
 
           if (messagesData[messagesData.length - 1]?.from === "client") {
             const responseFromGemini = await geminiResponsePromise || "";
