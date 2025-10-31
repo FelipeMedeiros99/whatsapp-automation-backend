@@ -1,6 +1,6 @@
 import { Client } from "whatsapp-web.js"
 
-import { deleteUser, findAllUser, updateUser } from "../repository/user.js";
+import { deleteUser, findAllUser, updateUser } from "../repository/userCrud.js";
 import replyMessage from "./replyMessage.js";
 
 const oneHour = 60 * 60 * 1000

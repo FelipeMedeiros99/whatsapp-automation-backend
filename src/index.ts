@@ -13,6 +13,7 @@ import { getRestrictionController, updateRestrictionController } from "./control
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
 import { getRestrictionByTitle } from "./repository/geminiCrud.js";
 import prisma from "./config/index.js";
+import { getAllVarsController, updateVarController } from "./controllers/varsControllers.js";
 
 const createRestriction = async () => {
   try {
@@ -39,6 +40,10 @@ app.get("/whatsapp/status/", getStatusController);
 
 app.get("/whatsapp/restriction/", getRestrictionController)
 app.put("/whatsapp/restriction/:id", updateRestrictionController)
+
+app.get("/whatsapp/vars", getAllVarsController)
+app.post("/whatsapp/vars", updateVarController)
+
 
 app.use(handleErrorMiddleware);
 

@@ -14,7 +14,7 @@ export default async function geminiResponse(userMessage?: string) {
     const restrictions = await getRestrictionByTitle("restrictions")
 
     const today = new Date()
-    const localeDateFormat = today.toLocaleDateString("pt-BR", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+    const localeDateFormat = today.toLocaleDateString("pt-BR", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
       
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",

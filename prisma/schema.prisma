@@ -44,3 +44,12 @@ model GeminiRestriction{
 
   @@map("gemini-restrictions")
 }
+
+model Vars{
+  id            Int @id @default(autoincrement())
+  title         String @unique
+  value         String?
+  numericValue  Int?
+
+  @@map("vars")
+}

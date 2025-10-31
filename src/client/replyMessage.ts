@@ -1,5 +1,5 @@
 import { Client, Message } from "whatsapp-web.js";
-import { createUser, updateUser } from "../repository/user.js";
+import { createUser, updateUser } from "../repository/userCrud.js";
 import { defaultMessages } from "./const.js";
 import { sleep } from "../tools/timeFunctions.js";
 import { createMessage, findMessage } from "../repository/message.js";
