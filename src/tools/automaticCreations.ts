@@ -3,36 +3,34 @@ import { defaultData } from "../gemini/geminidata.js";
 import { getRestrictionByTitle } from "../repository/geminiCrud.js";
 
 export async function createRestrictionsDefault() {
-  const defaultRestrictions = [{
-    title: "historyLimit",
-    value: null,
-    numericValue: 8,
-    restriction: null,
-  },
-  {
-    title: "transferPhrase",
-    value: "Irei repassar você para um atendente",
-    numericValue: null,
-    restriction: null,
-  },
-  {
-    title: "dbCleanupDays",
-    value: null,
-    numericValue: 30,
-    restriction: null,
-  },
-  {
-    title: "mainPrompt",
-    value: "Defina as restrições aqui",
-    numericValue: null,
-    restriction: defaultData,
-  },
-  {
-    title: "responseDelay",
-    value: null,
-    numericValue: 3.5,
-    restriction: defaultData,
-  }
+  const defaultRestrictions = [
+    {
+      title: "historyLimit",
+      restriction: null,
+      restrictionNumber: 8
+    },
+    {
+      title: "transferPhrase",
+      restriction: "Irei repassar você para um atendente",
+      restrictionNumber: null
+    },
+    {
+      title: "dbCleanupDays",
+      restriction: null,
+      restrictionNumber: 30
+    },
+    {
+      title: "mainPrompt",
+      restriction: defaultData,
+      restrictionNumber: null
+    },
+    {
+      title: "responseDelay",
+      restriction: null, 
+      restrictionNumber: 3.5 
+    }
+
+  
 ]
 
   try {

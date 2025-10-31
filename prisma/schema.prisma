@@ -41,7 +41,7 @@ model Restrictions{
   id                  Int @id @default(autoincrement())
   title               String @unique
   restriction         String?
-  restrictionNumber   Int?
+  restrictionNumber   Decimal?
 
   @@map("restrictions")
 }
