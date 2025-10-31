@@ -3,6 +3,13 @@ import prisma from "../config/index.js";
 
 export async function findMessage(number: string) {
   try {
+    const limit = await prisma.restrictions.findUnique({
+      where: {
+        title: 'historyLimit'
+      }
+    })
+
+
     const messages = await prisma.message.findMany({
       where: {
         userNumber: number
@@ -12,7 +19,7 @@ export async function findMessage(number: string) {
         from: true
       },
       orderBy: {date: "desc"},
-      take: 8,
+      take: limit?.restrictionNumber || 8,
     });
 
     return messages.reverse();
