@@ -2,7 +2,7 @@ import { Client } from "whatsapp-web.js"
 
 import { deleteUser, findAllUser, updateUser } from "../repository/userCrud.js";
 import replyMessage from "./replyMessage.js";
-import clearDb from "./clearDb.js";
+import { clearDb, reactiveBot } from "./timeoutFunctions.js";
 
 const oneHour = 60 * 60 * 1000
 const oneDay = oneHour * 24
@@ -63,18 +63,8 @@ class WhatsappService {
       }
     })
 
-    clearDb()
-
-    setInterval(async () => {
-      // Reativando chat depois de 2h sem conversa
-      const users = await findAllUser();
-      if (!users) return;
-      for (let user of users) {
-        if (Date.now() - Number(user.timestamp) * 1000 > oneHour * 2) {
-          await updateUser(user.number, { isBotStoped: false })
-        }
-      }
-    }, oneDay)
+    clearDb();
+    reactiveBot();
   }
 
   async connect(): Promise<string> {
