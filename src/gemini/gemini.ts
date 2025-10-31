@@ -15,12 +15,10 @@ export default async function geminiResponse(userMessage?: string) {
 
     const today = new Date()
     const localeDateFormat = today.toLocaleDateString("pt-BR", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
-      
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `
-      ${mainPrompt}
-      # *FRASE CHAVE PARA TRANSFERIR PARA ATENDENTE:* ${transferPhrase}
+    
+    const content = `
+      ${mainPrompt?.restriction}
+      # *FRASE CHAVE PARA TRANSFERIR PARA ATENDENTE:* ${transferPhrase?.restriction}
 
       # INFORMAÇÃO DE DATA
       use a data atual para se basear com relação aos dias da semana: ${localeDateFormat}
@@ -33,7 +31,12 @@ export default async function geminiResponse(userMessage?: string) {
       * A última mensagem deve ser o foco da sua resposta
       * Se não for a primeira interação de vocês, não é necessário se apresentar para o cliente.
       ${userMessage}
-      `,
+      `
+    console.log({content})
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: content,
     });
     return response.text;
   } catch (e) {
