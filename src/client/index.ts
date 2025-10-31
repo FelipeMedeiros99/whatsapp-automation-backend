@@ -2,6 +2,7 @@ import { Client } from "whatsapp-web.js"
 
 import { deleteUser, findAllUser, updateUser } from "../repository/userCrud.js";
 import replyMessage from "./replyMessage.js";
+import clearDb from "./clearDb.js";
 
 const oneHour = 60 * 60 * 1000
 const oneDay = oneHour * 24
@@ -62,16 +63,7 @@ class WhatsappService {
       }
     })
 
-    setInterval(async () => {
-      // limpando banco depois de 1 mês de inatividade
-      const users = await findAllUser();
-      if (!users) return;
-      for (let user of users) {
-        if (Date.now() - Number(user.timestamp) * 1000 > oneDay * 30 /** apagar depopis de 1 mês */) {
-          await deleteUser(user.number)
-        }
-      }
-    }, oneDay)
+    clearDb()
 
     setInterval(async () => {
       // Reativando chat depois de 2h sem conversa

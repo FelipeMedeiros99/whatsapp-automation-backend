@@ -3,23 +3,27 @@ import { deleteUser, findAllUser } from "../repository/userCrud.js";
 
 export default function clearDb(){
   
-  const oneHour = 60 * 60 * 1000
+  const oneHour = 60 * 60 // time from whatsapp
   const oneDay = oneHour * 24
 
   setInterval(async () => {
-    const dbCleanupDaysPromise = prisma.restrictions.findUnique({where: {title: "dbCleanupDays"}})
-    const usersPromise = findAllUser();
+    try{
 
-    const [dbCleanupDays, users] = await Promise.all([dbCleanupDaysPromise, usersPromise]);
+      const dbCleanupDays = await prisma.restrictions.findUnique({where: {title: "dbCleanupDays"}})
+      let qtDays = dbCleanupDays?.restrictionNumber || 30;
+      const currentTime = Date.now()/1000;
+      const comparationTime = currentTime - qtDays * oneDay
 
-    let qtDays = 30;
-    if(dbCleanupDays?.restrictionNumber) qtDays = dbCleanupDays.restrictionNumber;
-    if (!users) return;
-
-    for (let user of users) {
-      if (Date.now() - Number(user.timestamp) * 1000 > oneDay * qtDays) {
-        await deleteUser(user.number)
-      }
+      
+      await prisma.user.deleteMany({
+        where: {
+          timestamp: {
+            lt: comparationTime
+          }
+        }
+      })
+    }catch(e){
+      console.error("Erro ao limpar banco: ", e)
     }
   }, oneDay/2)
 }
