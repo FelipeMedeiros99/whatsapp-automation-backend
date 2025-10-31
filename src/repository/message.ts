@@ -19,7 +19,7 @@ export async function findMessage(number: string) {
         from: true
       },
       orderBy: {date: "desc"},
-      take: limit?.restrictionNumber || 8,
+      take: Number(limit?.restrictionNumber) || 8,
     });
 
     return messages.reverse();

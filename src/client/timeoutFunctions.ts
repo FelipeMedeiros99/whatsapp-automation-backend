@@ -8,7 +8,7 @@ export function clearDb(){
     try{
 
       const dbCleanupDays = await prisma.restrictions.findUnique({where: {title: "dbCleanupDays"}})
-      let qtDays = dbCleanupDays?.restrictionNumber || 30;
+      let qtDays = Number(dbCleanupDays?.restrictionNumber) || 30;
       const currentTime = Math.floor(Date.now()/1000);
       const comparationTime = currentTime - qtDays * oneDay
       

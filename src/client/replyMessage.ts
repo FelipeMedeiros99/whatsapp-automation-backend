@@ -90,8 +90,8 @@ export default async function replyMessage(message: Message, client: Client) {
       if (timeoutId) clearTimeout(timeoutId);
       
       const restrictionDelay = await restrictionDelayPromise;
-      let delay = 3500;
-      if (restrictionDelay?.restrictionNumber) delay = restrictionDelay?.restrictionNumber * 1000
+      let delay = Number(restrictionDelay?.restrictionNumber) * 1000 || 3500;
+
       const userTimeout = setTimeout(async () => {
         try {
           const messagesDataPromise = findMessage(clientChatId)
