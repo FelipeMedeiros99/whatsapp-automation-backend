@@ -37,19 +37,11 @@ model Message{
 }
 
 
-model GeminiRestriction{
-  id            Int @id @default(autoincrement())
-  title         String
-  restriction   String
+model Restrictions{
+  id                  Int @id @default(autoincrement())
+  title               String @unique
+  restriction         String?
+  restrictionNumber   Int?
 
-  @@map("gemini-restrictions")
-}
-
-model Vars{
-  id            Int @id @default(autoincrement())
-  title         String @unique
-  value         String?
-  numericValue  Int?
-
-  @@map("vars")
+  @@map("restrictions")
 }

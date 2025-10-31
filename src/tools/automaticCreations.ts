@@ -1,57 +1,45 @@
 import prisma from "../config/index.js";
+import { defaultData } from "../gemini/geminidata.js";
 import { getRestrictionByTitle } from "../repository/geminiCrud.js";
 
 export async function createRestrictionsDefault() {
+  const defaultRestrictions = [{
+    title: "historyLimit",
+    value: null,
+    numericValue: 8,
+    restriction: null,
+  },
+  {
+    title: "transferPhrase",
+    value: "Irei repassar você para um atendente",
+    numericValue: null,
+    restriction: null,
+  },
+  {
+    title: "dbCleanupDays",
+    value: null,
+    numericValue: 30,
+    restriction: null,
+  },
+  {
+    title: "mainPrompt",
+    value: "Defina as restrições aqui",
+    numericValue: null,
+    restriction: defaultData,
+  }]
+
   try {
-    console.log("Verificando/Criando restrição padrão...");
-    const restrictions = await getRestrictionByTitle("restrictions");
-    if (!restrictions) {
-      await prisma.geminiRestriction.create({ data: { title: "restrictions", restriction: "" } });
-      console.log("Restrição padrão criada com sucesso.");
-    } else {
-      console.log("Restrição padrão já existe.");
-    }
+    await Promise.all(
+      defaultRestrictions.map(async (defaultConfig) => {
+        await prisma.restrictions.upsert({
+          where: {
+            title: defaultConfig.title,
+          },
+          update: {},
+          create: defaultConfig
+        });
+      }))
   } catch (error) {
     console.error("Erro ao verificar/criar restrição padrão:", error);
-  }
-};
-
-
-export async function findVar(title: string) {
-  try {
-    return await prisma.vars.findUnique({
-      where: {
-        title: title,
-      },
-    });
-  } catch (error) {
-    console.log("Erro ao criar vars: ", error)
-  }
-}
-
-
-const defaultVars = [
-  {
-    title: "Contexto de mensagens",
-    value: null,
-    numericValue: 8
-  },
-  {
-    title: "Frase de transferência para atendente humano",
-    value: "Irei repassar você para um atendente",
-    numericValue: null
-  },
-  {
-    title: "Limpeza do banco",
-    value: null,
-    numericValue: 30
-  }
-];
-
-export async function createDefaultVars() {
-  try {
-    await prisma.vars.createMany({data: defaultVars});
-  }catch (error) {
-      console.error("Erro ao inicializar variáveis padrão:", error);
   }
 };

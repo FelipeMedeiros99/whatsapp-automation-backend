@@ -7,7 +7,7 @@ import { getRestrictionController, updateRestrictionController } from "./control
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
 import { getAllVarsController, updateVarController } from "./controllers/varsControllers.js";
-import { createDefaultVars, createRestrictionsDefault } from "./tools/automaticCreations.js";
+import { createRestrictionsDefault } from "./tools/automaticCreations.js";
 
 const PORT = process.env.PORT || 5002
 const app = express()
@@ -27,7 +27,7 @@ app.post("/whatsapp/vars", updateVarController)
 app.use(handleErrorMiddleware);
 
 (async()=>{
-  await Promise.all([createRestrictionsDefault(), createDefaultVars()]);
+  await createRestrictionsDefault();
   app.listen(Number(PORT), async () => {
     console.log(`server running at port ${PORT}`);
   })
