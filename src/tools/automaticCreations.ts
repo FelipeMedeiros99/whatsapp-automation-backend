@@ -21,7 +21,7 @@ export async function createRestrictionsDefault() {
     },
     {
       title: "mainPrompt",
-      restriction: defaultData,
+      restriction: "Defina as restrições",
       restrictionNumber: null
     },
     {
