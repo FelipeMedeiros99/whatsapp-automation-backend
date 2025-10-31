@@ -1,5 +1,4 @@
 import prisma from "../config/index.js";
-import { findAllUser, updateUser } from "../repository/userCrud.js";
 
 const oneHour = 60 * 60 // time from whatsapp
 const oneDay = oneHour * 24
