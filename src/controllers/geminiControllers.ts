@@ -3,8 +3,8 @@ import { getAllRestrictions, getRestrictionByTitle, updateRestriction } from "..
 
 export async function getRestrictionController(req: Request, res: Response){
   try {
-    const restriction = await getRestrictionByTitle("restrictions")
-    res.send(restriction)
+    const restrictions = await getAllRestrictions()
+    res.send(restrictions)
     return
   } catch (e) {
     throw {message: "Erro ao buscar restrição", statusCode: 500, error: e}

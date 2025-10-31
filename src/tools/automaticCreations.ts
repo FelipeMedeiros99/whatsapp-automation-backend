@@ -26,7 +26,14 @@ export async function createRestrictionsDefault() {
     value: "Defina as restrições aqui",
     numericValue: null,
     restriction: defaultData,
-  }]
+  },
+  {
+    title: "responseDelay",
+    value: null,
+    numericValue: 3.5,
+    restriction: defaultData,
+  }
+]
 
   try {
     await Promise.all(

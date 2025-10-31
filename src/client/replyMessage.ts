@@ -3,8 +3,8 @@ import { createUser, updateUser } from "../repository/userCrud.js";
 import { defaultMessages } from "./const.js";
 import { sleep } from "../tools/timeFunctions.js";
 import { createMessage, findMessage } from "../repository/message.js";
-import { User } from "@prisma/client";
 import geminiResponse from "../gemini/gemini.js";
+import prisma from "../config/index.js";
 
 // const gree = "559891402255"
 // const felipe = "559887835523"
@@ -70,6 +70,7 @@ export default async function replyMessage(message: Message, client: Client) {
   }
 
   if (!isMe && messageFrom.includes("@c.us") && contentMessage) {
+    const restrictionDelayPromise = prisma.restrictions.findUnique({where: {title: "responseDelay"}})
 
     const clientChatId = messageFrom;
     const userData = await createUser({
@@ -80,6 +81,7 @@ export default async function replyMessage(message: Message, client: Client) {
       lastMessageFromBot: false,
       timeoutId: null
     })
+
     await createMessage({ userNumber: clientChatId, from: "client", text: contentMessage });
     if (!userData) return;
     const { isBotStoped, timeoutId, wasWelcome } = userData;
@@ -87,6 +89,9 @@ export default async function replyMessage(message: Message, client: Client) {
     if (!isBotStoped) {
       if (timeoutId) clearTimeout(timeoutId);
       
+      const restrictionDelay = await restrictionDelayPromise;
+      let delay = 3500;
+      if (restrictionDelay?.restrictionNumber) delay = restrictionDelay?.restrictionNumber * 1000
       const userTimeout = setTimeout(async () => {
         try {
           const messagesDataPromise = findMessage(clientChatId)
@@ -113,7 +118,7 @@ export default async function replyMessage(message: Message, client: Client) {
         } catch (e) {
           console.log("erro ao enviar mensagem: ", e)
         }
-      }, 3500);
+      }, delay);
 
       await updateUser(clientChatId, { timeoutId: Number(userTimeout) })
     }

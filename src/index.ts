@@ -6,7 +6,6 @@ import {connectController, getStatusController } from "./controllers/conectionCo
 import { getRestrictionController, updateRestrictionController } from "./controllers/geminiControllers.js";
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
-import { getAllVarsController, updateVarController } from "./controllers/varsControllers.js";
 import { createRestrictionsDefault } from "./tools/automaticCreations.js";
 
 const PORT = process.env.PORT || 5002
@@ -19,9 +18,6 @@ app.get("/whatsapp/status/", getStatusController);
 
 app.get("/whatsapp/restriction/", getRestrictionController)
 app.put("/whatsapp/restriction/:id", updateRestrictionController)
-
-app.get("/whatsapp/vars", getAllVarsController)
-app.post("/whatsapp/vars", updateVarController)
 
 
 app.use(handleErrorMiddleware);
