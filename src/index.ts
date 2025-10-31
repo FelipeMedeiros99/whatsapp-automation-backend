@@ -2,33 +2,12 @@ import express, { json } from "express";
 import cors from "cors";
 import 'dotenv/config';
 
-import { 
-  connectController, 
-  getStatusController, 
-  // getAllMessagesController, 
-  // updateMessageController 
-} from "./controllers/conectionControllers.js";
+import {connectController, getStatusController } from "./controllers/conectionControllers.js";
 import { getRestrictionController, updateRestrictionController } from "./controllers/geminiControllers.js";
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
-import { getRestrictionByTitle } from "./repository/geminiCrud.js";
-import prisma from "./config/index.js";
 import { getAllVarsController, updateVarController } from "./controllers/varsControllers.js";
-
-const createRestriction = async () => {
-  try {
-    console.log("Verificando/Criando restrição padrão...");
-    const restrictions = await getRestrictionByTitle("restrictions");
-    if (!restrictions) {
-      await prisma.geminiRestriction.create({ data: { title: "restrictions", restriction: "" } });
-      console.log("Restrição padrão criada com sucesso.");
-    } else {
-      console.log("Restrição padrão já existe.");
-    }
-  } catch (error) {
-    console.error("Erro ao verificar/criar restrição padrão:", error);
-  }
-};
+import { createDefaultVars, createRestrictionsDefault } from "./tools/automaticCreations.js";
 
 const PORT = process.env.PORT || 5002
 const app = express()
@@ -48,7 +27,7 @@ app.post("/whatsapp/vars", updateVarController)
 app.use(handleErrorMiddleware);
 
 (async()=>{
-  await createRestriction()
+  await Promise.all([createRestrictionsDefault(), createDefaultVars()]);
   app.listen(Number(PORT), async () => {
     console.log(`server running at port ${PORT}`);
   })
