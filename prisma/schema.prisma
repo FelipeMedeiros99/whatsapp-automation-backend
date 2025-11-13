@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 model User{
@@ -16,6 +16,8 @@ model User{
   isBotStoped         Boolean 
   wasWelcome          Boolean       
   lastMessageFromBot  Boolean
+
+  timeoutId           Int?
 
   message       Message[]
 
@@ -32,4 +34,14 @@ model Message{
   user          User @relation(fields: [userNumber], references: [number], onDelete: Cascade) 
 
   @@map("message")
+}
+
+
+model Restrictions{
+  id                  Int @id @default(autoincrement())
+  title               String @unique
+  restriction         String?
+  restrictionNumber   Decimal?
+
+  @@map("restrictions")
 }

@@ -8,3 +8,4 @@ dev.db
 /src/generated/prisma
 
 /generated/prisma
+dev.db
