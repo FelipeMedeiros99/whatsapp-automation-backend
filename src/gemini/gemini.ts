@@ -41,6 +41,6 @@ export default async function geminiResponse(userMessage?: string) {
     return response.text;
   } catch (e) {
     console.log(e)
-    return "irei repassar você para um atendente"
+    return ""
   }
 }
