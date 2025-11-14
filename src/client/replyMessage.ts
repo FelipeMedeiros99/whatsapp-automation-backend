@@ -71,7 +71,7 @@ export default async function replyMessage(message: Message, client: Client) {
 
   if (!isMe && messageFrom.includes("@c.us") && contentMessage) {
     const restrictionDelayPromise = prisma.restrictions.findUnique({where: {title: "responseDelay"}})
-    const transferPhrasePromise = prisma.restrictions.findUnique({where: {title: "responseDelay"}})
+    const transferPhrasePromise = prisma.restrictions.findUnique({where: {title: "transferPhrase"}})
 
     const clientChatId = messageFrom;
     const userData = await createUser({
@@ -107,8 +107,7 @@ export default async function replyMessage(message: Message, client: Client) {
           if (messagesData[messagesData.length - 1]?.from === "client") {
             const responseFromGemini = await geminiResponsePromise || "";
             const sendingMessage = sendMessage(responseFromGemini);
-            
-            let transferPhrase = await transferPhrasePromise
+            const transferPhrase = await transferPhrasePromise;
 
             if (responseFromGemini.toLocaleLowerCase().includes(transferPhrase?.restriction || "irei repassar você para um atendente")) {
               const updateuserPromise = updateUser(clientChatId, {isBotStoped: true, lastMessageFromBot: true})
