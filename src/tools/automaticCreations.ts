@@ -1,5 +1,5 @@
 import prisma from "../config/index.js";
-import { defaultData } from "../gemini/geminidata.js";
+import { defaultData } from "../iaResponse/iaData.js";
 import { getRestrictionByTitle } from "../repository/geminiCrud.js";
 
 export async function createRestrictionsDefault() {

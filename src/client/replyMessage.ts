@@ -3,7 +3,7 @@ import { createUser, updateUser } from "../repository/userCrud.js";
 import { defaultMessages } from "./const.js";
 import { sleep } from "../tools/timeFunctions.js";
 import { createMessage, findMessage } from "../repository/message.js";
-import geminiResponse from "../gemini/gemini.js";
+import iaResponse from "../iaResponse/iaResponse.js";
 import prisma from "../config/index.js";
 
 // const gree = "559891402255"
@@ -102,14 +102,14 @@ export default async function replyMessage(message: Message, client: Client) {
           if (!messagesData) return;
           
           const messageContext = messagesData?.map((msg: { from: string, text: string }) => `${msg.from}: ${msg.text}`).join("\n")
-          const geminiResponsePromise = geminiResponse(messageContext) || ""
+          const iaResponsePromise = iaResponse(messageContext) || ""
           
           if (messagesData[messagesData.length - 1]?.from === "client") {
-            const responseFromGemini = await geminiResponsePromise || "";
-            const sendingMessage = sendMessage(responseFromGemini);
+            const responseFromIa = await iaResponsePromise || "";
+            const sendingMessage = sendMessage(responseFromIa);
             const transferPhrase = await transferPhrasePromise;
 
-            if (responseFromGemini.toLocaleLowerCase().includes(transferPhrase?.restriction || "irei repassar você para um atendente")) {
+            if (responseFromIa.toLocaleLowerCase().includes(transferPhrase?.restriction || "irei repassar você para um atendente")) {
               const updateuserPromise = updateUser(clientChatId, {isBotStoped: true, lastMessageFromBot: true})
               await Promise.all([updateuserPromise, sendingMessage])
               return;

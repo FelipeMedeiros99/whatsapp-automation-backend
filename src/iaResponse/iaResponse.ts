@@ -1,11 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import "dotenv/config"
 import prisma from "../config/index.js";
 
 // console.log(process.env.GEMINI_API_KEY)
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const deepseek = new OpenAI({baseURL: 'https://api.deepseek.com', apiKey: process.env.DEEPSEEK_API_KEY});
 
-export default async function geminiResponse(userMessage?: string) {
+export default async function iaResponse(userMessage?: string) {
   try {
     const mainPromptPromise = prisma.restrictions.findUnique({where: {title: "mainPrompt"}});
     const transferPhrasePromise = prisma.restrictions.findUnique({where: {title: "transferPhrase"}})
@@ -32,13 +34,22 @@ export default async function geminiResponse(userMessage?: string) {
       * Se não for a primeira interação de vocês, não é necessário se apresentar para o cliente.
       ${userMessage}
       `
-    console.log({content})
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: content,
+    try{
+      const response = await gemini.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: content,
+      });
+
+      return response.text;
+    }catch(e){
+
+      const response = await deepseek.chat.completions.create({
+        messages: [{role: "system", content}],
+        model: "deepseek-chat"
     });
-    return response.text;
+    
+      return response.choices[0].message.content;
+    }
   } catch (e) {
     console.log(e)
     return ""
