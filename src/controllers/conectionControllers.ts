@@ -26,3 +26,13 @@ export async function getStatusController(req: Request, res: Response){
     throw {message: "Erro ao buscar status", statusCode: 500, error: e}
   }
 }
+
+export async function disconnectClientController(req: Request, res: Response){
+  try {
+    const disconnectResponse = await service2.destroyClient()
+    res.send(disconnectResponse);
+    return;
+  } catch (e) {
+    throw {message: "Erro ao desconectar whatsapp", statusCode: 500, error: e}
+  }
+}

@@ -2,7 +2,7 @@ import express, { json } from "express";
 import cors from "cors";
 import 'dotenv/config';
 
-import {connectController, getStatusController } from "./controllers/conectionControllers.js";
+import {connectController, disconnectClientController, getStatusController } from "./controllers/conectionControllers.js";
 import { getRestrictionController, updateRestrictionController } from "./controllers/geminiControllers.js";
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
@@ -14,6 +14,7 @@ app.use(cors())
 app.use(json())
 
 app.get("/whatsapp/connect/", connectController);
+app.get("/whatsapp/disconnect/", disconnectClientController);
 app.get("/whatsapp/status/", getStatusController);
 
 app.get("/whatsapp/restriction/", getRestrictionController)

@@ -1,5 +1,7 @@
 import { create, Whatsapp } from '@wppconnect-team/wppconnect';
 import replyMessage from './replyMessage.js';
+import path from 'path';
+import { fsync, rmSync } from 'fs';
 
 // Usamos uma função assíncrona para poder usar o 'await'
 
@@ -8,6 +10,7 @@ class WhatsappService2 {
   public qrCode: string | null;
   public isLoged: boolean;
   public status: string;
+  public sessionName = "greeHotel"
 
   constructor() {
     this.client = null
@@ -20,7 +23,7 @@ class WhatsappService2 {
   }
 
   async getQrCode(){
-    if(this.status === "qrReadError"){
+    if(this.status === "qrReadError" || this.status === "browserClose"){
       await this.initialize()
       return null
     }
@@ -33,7 +36,7 @@ class WhatsappService2 {
     this.status = "starting"
 
     create({
-      session: "greeHotel",
+      session: this.sessionName,
       catchQR: (base64Qrimg, asciiQR, attempts, urlCode) => {
         this.qrCode = base64Qrimg;
         this.status = "waiting_scan"
@@ -67,18 +70,25 @@ class WhatsappService2 {
   }
 
   async destroyClient() {
+    
     if (this.client) {
       try {
         // Fecha a sessão e o navegador do Puppeteer
         await this.client.close();
+
         this.client = null;
         this.qrCode = null;
         this.isLoged = false;
-        console.log("Cliente destruído com sucesso.");
       } catch (e) {
-        console.error("Erro ao fechar o cliente:", e);
+        throw e;
       }
     }
+
+    const tokenPath = path.resolve("tokens", this.sessionName);
+    if(tokenPath){
+      rmSync(tokenPath, {recursive: true, force: true});
+    }
+    return "Cliente destruído com sucesso.";
   }
 
   async start(client: Whatsapp | null): Promise<void> {
