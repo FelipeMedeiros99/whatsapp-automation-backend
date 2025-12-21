@@ -1,47 +1,91 @@
 import { create, Whatsapp } from '@wppconnect-team/wppconnect';
+import replyMessage from './replyMessage.js';
 
 // Usamos uma função assíncrona para poder usar o 'await'
 
 class WhatsappService2 {
   private client: Whatsapp | null;
   public qrCode: string | null;
-  public isLogged: boolean;
+  public isLoged: boolean;
+  public status: string;
 
   constructor() {
     this.client = null
     this.qrCode = null
-    this.isLogged = false
+    this.isLoged = false
+    this.status = "initializing"
+    this.initialize()
+
+    setInterval(()=>console.log({status: this.status}), 2000)
+  }
+
+  async getQrCode(){
+    if(this.status === "qrReadError"){
+      await this.initialize()
+      return null
+    }
+
+    return this.qrCode
   }
 
   async initialize() {
-    try {
-      this.client = await create({
-        session: "greeHotel",
-        catchQR: (base64Qrimg, asciiQR, attempts, urlCode) => {
-          this.qrCode = asciiQR;
-        },
-        statusFind: (statusSession, session) => {
-          if(statusSession = "isLogged"){
-            this.isLogged = true
-          }else{
-            this.isLogged = false
-          }
+    // await this.destroyClient()
+    this.status = "starting"
+
+    create({
+      session: "greeHotel",
+      catchQR: (base64Qrimg, asciiQR, attempts, urlCode) => {
+        this.qrCode = base64Qrimg;
+        this.status = "waiting_scan"
+      },
+      statusFind: (statusSession, session) => {
+        this.status = statusSession;
+        
+        switch(this.status){
+          case "isLogged":
+            this.isLoged = true;
+            this.qrCode = null;
+            break
+          
+          case "inChat":
+            this.isLoged = true;
+            this.qrCode = null
+            break
+
+          default: 
+            this.isLoged = false;
+            // this.qrCode = null;
         }
+      },
+      logQR: false
+    })
+      .then((client) => {
+        this.client = client;
+        this.start(client)
       })
+      .catch(e => console.log({"erro ocorrido": e}))
+  }
 
-      console.log("Connected!")
-      this.start()
-
-    } catch (e) {
-      console.log("Error while try connect: ", e)
+  async destroyClient() {
+    if (this.client) {
+      try {
+        // Fecha a sessão e o navegador do Puppeteer
+        await this.client.close();
+        this.client = null;
+        this.qrCode = null;
+        this.isLoged = false;
+        console.log("Cliente destruído com sucesso.");
+      } catch (e) {
+        console.error("Erro ao fechar o cliente:", e);
+      }
     }
   }
 
-  start() {
-    if (!this.client) return;
+  async start(client: Whatsapp | null): Promise<void> {
+    if (!client) return
 
-    this.client.onMessage((message) => {
-      console.log('Mensagem recebida:', message.body);
+    client.onMessage(async(message) => {
+      await replyMessage(message, client)
     });
   }
 }

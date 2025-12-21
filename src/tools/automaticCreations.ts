@@ -36,6 +36,7 @@ export async function createRestrictionsDefault() {
   try {
     await Promise.all(
       defaultRestrictions.map(async (defaultConfig) => {
+        console.log("inserindo restriçções no banco...")
         await prisma.restrictions.upsert({
           where: {
             title: defaultConfig.title,
@@ -43,6 +44,7 @@ export async function createRestrictionsDefault() {
           update: {},
           create: defaultConfig
         });
+        console.log("restrições inseridas")
       }))
   } catch (error) {
     console.error("Erro ao verificar/criar restrição padrão:", error);
