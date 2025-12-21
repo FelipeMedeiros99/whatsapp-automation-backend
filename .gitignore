@@ -9,3 +9,4 @@ dev.db
 
 /generated/prisma
 dev.db
+/tokens

@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "@google/genai": "^1.23.0",
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "^6.12.0",
+    "@wppconnect-team/wppconnect": "^1.37.8",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
