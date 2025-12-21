@@ -23,6 +23,8 @@ app.put("/whatsapp/restriction/:id", updateRestrictionController)
 app.use(handleErrorMiddleware);
 
 (async()=>{
+  // setting database restrictions
+  
   await createRestrictionsDefault();
   app.listen(Number(PORT), async () => {
     console.log(`server running at port ${PORT}`);
