@@ -2,6 +2,7 @@ import { create, Whatsapp } from '@wppconnect-team/wppconnect';
 import replyMessage from './replyMessage.js';
 import path from 'path';
 import { fsync, rmSync } from 'fs';
+import { clearDb, reactiveBot } from '../client/timeoutFunctions.js';
 
 // Usamos uma função assíncrona para poder usar o 'await'
 
@@ -11,6 +12,7 @@ class WhatsappService2 {
   public isLoged: boolean;
   public status: string;
   public sessionName = "greeHotel"
+  private statusLog: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     this.client = null
@@ -18,8 +20,10 @@ class WhatsappService2 {
     this.isLoged = false
     this.status = "initializing"
     this.initialize()
+    clearDb()
+    reactiveBot()
 
-    setInterval(()=>console.log({status: this.status}), 2000)
+    this.statusLog = setInterval(()=>console.log({status: this.status}), 2000)
   }
 
   async getQrCode(){
@@ -37,6 +41,10 @@ class WhatsappService2 {
 
     create({
       session: this.sessionName,
+      autoClose: 600000,           // IMPORTANTE: Impede que o bot feche em 60s ou 180s
+      disableWelcome: true,   // Evita logs desnecessários de boas-vindas
+      tokenStore: 'file',
+      waitForLogin: true,     // Faz a biblioteca esperar o login ser concluído
       catchQR: (base64Qrimg, asciiQR, attempts, urlCode) => {
         this.qrCode = base64Qrimg;
         this.status = "waiting_scan"
@@ -53,6 +61,7 @@ class WhatsappService2 {
           case "inChat":
             this.isLoged = true;
             this.qrCode = null
+            clearInterval(this.statusLog!)
             break
 
           default: 
@@ -94,7 +103,7 @@ class WhatsappService2 {
   async start(client: Whatsapp | null): Promise<void> {
     if (!client) return
 
-    client.onMessage(async(message) => {
+    client.onAnyMessage(async(message) => {
       await replyMessage(message, client)
     });
   }

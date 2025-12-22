@@ -26,12 +26,17 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
   const messageTo = message.to;
   const messageFrom = message.from;
 
+  console.log({isMe, contentMessage, messageTo, messageFrom})
+
   if (isMe) {
     const clientChatId = messageTo;
+    const transferPhrasePromise = prisma.restrictions.findUnique({where: {title: "transferPhrase"}})
+
+
     let userData = await createUser({
       number: clientChatId,
       wasWelcome: true,
-      timestamp: BigInt(message.timestamp),
+      timestamp: BigInt(message.t),
       isBotStoped: false,
       lastMessageFromBot: false,
       timeoutId: null
@@ -46,7 +51,8 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
       return;
     }
 
-    if (contentMessage === defaultMessages.finish) {
+    const transferPhrase = await transferPhrasePromise;
+    if (transferPhrase?.restriction && contentMessage.includes(transferPhrase?.restriction)) {
       const updateuserPromise = updateUser(clientChatId, {isBotStoped: false, lastMessageFromBot: true});
       const createMessagePromise = createMessage({ userNumber: clientChatId, text: contentMessage, from: "bot" });
       await Promise.all([updateuserPromise, createMessagePromise])
@@ -56,10 +62,15 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
     if (contentMessage === defaultMessages.reserved) {
       const messages = [defaultMessages.info, defaultMessages.promotional, defaultMessages.more];
       for(let message of messages){
-        await sleep(1000);
+        await sleep(2000);
         await sendMessage(message, clientChatId)
       }
       return;
+    }
+
+    if(contentMessage === defaultMessages.finish && userData.isBotStoped){
+      await updateUser(clientChatId, {isBotStoped: false});
+      return
     }
 
     if (!userData.isBotStoped) { 
@@ -78,7 +89,7 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
     const userData = await createUser({
       number: clientChatId,
       wasWelcome: true,
-      timestamp: BigInt(message.timestamp),
+      timestamp: BigInt(message.t),
       isBotStoped: false,
       lastMessageFromBot: false,
       timeoutId: null
