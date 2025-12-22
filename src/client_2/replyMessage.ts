@@ -10,7 +10,6 @@ import { Message, Whatsapp } from "@wppconnect-team/wppconnect";
 // const gree = "559891402255"
 // const felipe = "559887835523"
 // const leo = "559884786375"
-
 export default async function replyMessage(message: Message, client: Whatsapp) {
 
   const sendMessage = async (text: string, number: string = messageFrom) => {
@@ -44,16 +43,17 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
     
     if (!userData) return;
 
-    if (userData?.lastMessageFromBot) {
-      const updateuserPromise = updateUser(clientChatId, { lastMessageFromBot: false });
+    // transfer to attendent logic
+    const transferPhrase = await transferPhrasePromise
+    if (transferPhrase?.restriction && contentMessage.toLocaleLowerCase()?.includes(transferPhrase?.restriction?.toLocaleLowerCase())) {
+      const updateuserPromise = updateUser(clientChatId, {isBotStoped: true, lastMessageFromBot: false});
       const createMessagePromise = createMessage({ userNumber: clientChatId, text: contentMessage, from: "bot" });
       await Promise.all([updateuserPromise, createMessagePromise])
       return;
     }
 
-    const transferPhrase = await transferPhrasePromise;
-    if (transferPhrase?.restriction && contentMessage.toLocaleLowerCase()?.includes(transferPhrase?.restriction?.toLocaleLowerCase())) {
-      const updateuserPromise = updateUser(clientChatId, {isBotStoped: true, lastMessageFromBot: false});
+    if (userData?.lastMessageFromBot) {
+      const updateuserPromise = updateUser(clientChatId, { lastMessageFromBot: false });
       const createMessagePromise = createMessage({ userNumber: clientChatId, text: contentMessage, from: "bot" });
       await Promise.all([updateuserPromise, createMessagePromise])
       return;
