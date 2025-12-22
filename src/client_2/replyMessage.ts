@@ -52,8 +52,8 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
     }
 
     const transferPhrase = await transferPhrasePromise;
-    if (transferPhrase?.restriction && contentMessage.includes(transferPhrase?.restriction)) {
-      const updateuserPromise = updateUser(clientChatId, {isBotStoped: false, lastMessageFromBot: true});
+    if (transferPhrase?.restriction && contentMessage.toLocaleLowerCase()?.includes(transferPhrase?.restriction?.toLocaleLowerCase())) {
+      const updateuserPromise = updateUser(clientChatId, {isBotStoped: true, lastMessageFromBot: false});
       const createMessagePromise = createMessage({ userNumber: clientChatId, text: contentMessage, from: "bot" });
       await Promise.all([updateuserPromise, createMessagePromise])
       return;
