@@ -81,7 +81,7 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
       return;
   }
 
-  if (!isMe && messageFrom.includes("@c.us") && contentMessage) {
+  if (!isMe && (messageFrom.includes("@c.us") || messageFrom.includes("@lid")) && contentMessage) {
     const restrictionDelayPromise = prisma.restrictions.findUnique({where: {title: "responseDelay"}})
     const transferPhrasePromise = prisma.restrictions.findUnique({where: {title: "transferPhrase"}})
 
