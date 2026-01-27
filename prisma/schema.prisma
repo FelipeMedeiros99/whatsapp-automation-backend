@@ -46,7 +46,14 @@ model Restrictions{
   @@map("restrictions")
 }
 
-model ConfirmReservMessage{ 
+
+enum CategoryMessages {
+  FINISH_RESERV
+
+}
+
+model DefaultMessages{ 
   id                  Int @id @default(autoincrement())
   text                String @unique
+  key                 CategoryMessages
 }
