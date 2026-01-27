@@ -10,6 +10,8 @@ import { Message, Whatsapp } from "@wppconnect-team/wppconnect";
 // const gree = "559891402255"
 // const felipe = "559887835523"
 // const leo = "559884786375"
+const vivi = "559899066813"
+
 export default async function replyMessage(message: Message, client: Whatsapp) {
 
   const sendMessage = async (text: string, number: string = messageFrom) => {
@@ -60,10 +62,14 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
     }
 
     if (contentMessage === defaultMessages.reserved) {
-      const messages = [defaultMessages.info, defaultMessages.promotional, defaultMessages.more];
-      for(let message of messages){
+      const finishMessages = await prisma.defaultMessages.findMany({
+        where: {
+          key: "FINISH_RESERV"
+        }
+      })
+      for(let message of finishMessages){
         await sleep(2000);
-        await sendMessage(message, clientChatId)
+        await sendMessage(message.text, clientChatId)
       }
       return;
     }
@@ -81,7 +87,7 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
       return;
   }
 
-  if (!isMe && (messageFrom.includes("@c.us") || messageFrom.includes("@lid")) && contentMessage) {
+  if (!isMe && (messageFrom.includes("@c.us") || messageFrom.includes("@lid")) && contentMessage && messageFrom.includes(vivi)) {
     const restrictionDelayPromise = prisma.restrictions.findUnique({where: {title: "responseDelay"}})
     const transferPhrasePromise = prisma.restrictions.findUnique({where: {title: "transferPhrase"}})
 
@@ -96,6 +102,7 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
     })
 
     await createMessage({ userNumber: clientChatId, from: "client", text: contentMessage });
+
     if (!userData) return;
     const { isBotStoped, timeoutId, wasWelcome } = userData;
 
