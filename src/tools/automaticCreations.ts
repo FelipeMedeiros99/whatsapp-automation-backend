@@ -1,3 +1,4 @@
+import { DefaultMessages } from "@prisma/client";
 import prisma from "../config/index.js";
 import { defaultData } from "../iaResponse/iaData.js";
 import { getRestrictionByTitle } from "../repository/geminiCrud.js";
@@ -33,7 +34,7 @@ export async function createRestrictionsDefault() {
   
   ]
 
-  const defaultFinishMessage= [
+  const defaultFinishMessage: Omit<DefaultMessages, "id">[] = [
     {
       text: `🏨 *Informativos do Gree Hotel* 🏨
 
@@ -49,15 +50,19 @@ export async function createRestrictionsDefault() {
 🕛 *Check-Out*: Até às 12h
 
 🌐 Site oficial: www.greehotel.com.br
-📩 Reservas corporativas: reservasgree@gmail.com`
+📩 Reservas corporativas: reservasgree@gmail.com`,
+      key: "FINISH_RESERV",
+
     },
 
     {
-      text: `Desconto de R$ 20,00 em cada diária para pagamento com dinheiro em espécie.`
+      text: `Desconto de R$ 20,00 em cada diária para pagamento com dinheiro em espécie.`,
+      key: "FINISH_RESERV"
     },
 
     {
-      text: `Podemos ajudar em algo mais?`
+      text: `Podemos ajudar em algo mais?`,
+      key: "FINISH_RESERV",
     }
   ]
 
@@ -77,9 +82,9 @@ export async function createRestrictionsDefault() {
       }))
 
       console.log("Inserindo mensagens de confirmação de reserva padrão")
-      const messages = await prisma.confirmReservMessage.findMany();
+      const messages = await prisma.defaultMessages.findMany();
       if(messages.length === 0){
-        await prisma.confirmReservMessage.createMany({
+        await prisma.defaultMessages.createMany({
           data: defaultFinishMessage
         })
       }
