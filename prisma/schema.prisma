@@ -45,3 +45,8 @@ model Restrictions{
 
   @@map("restrictions")
 }
+
+model ConfirmReservMessage{ 
+  id                  Int @id @default(autoincrement())
+  text                String @unique
+}
