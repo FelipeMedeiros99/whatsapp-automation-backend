@@ -31,7 +31,36 @@ export async function createRestrictionsDefault() {
     }
 
   
-]
+  ]
+
+  const defaultFinishMessage= [
+    {
+      text: `🏨 *Informativos do Gree Hotel* 🏨
+
+- Café da manhã incluso
+- Garagem rotativa *(vagas limitadas)*
+- Crianças até 3 anos não pagam
+- Wi-Fi gratuito
+- Piscina disponível das 6h às 18h
+- Quartos triplos e quádruplos com 2 camas de casal
+- Não aceitamos pets
+
+🕒 *Check-In*: A partir das 14h
+🕛 *Check-Out*: Até às 12h
+
+🌐 Site oficial: www.greehotel.com.br
+📩 Reservas corporativas: reservasgree@gmail.com`
+    },
+
+    {
+      text: `Desconto de R$ 20,00 em cada diária para pagamento com dinheiro em espécie.`
+    },
+
+    {
+      text: `Podemos ajudar em algo mais?`
+    }
+  ]
+
 
   try {
     await Promise.all(
@@ -43,9 +72,18 @@ export async function createRestrictionsDefault() {
           },
           update: {},
           create: defaultConfig
-        });
+        });        
         console.log("restrições inseridas")
       }))
+
+      console.log("Inserindo mensagens de confirmação de reserva padrão")
+      const messages = await prisma.confirmReservMessage.findMany();
+      if(messages.length === 0){
+        await prisma.confirmReservMessage.createMany({
+          data: defaultFinishMessage
+        })
+      }
+      console.log("mensagens padrão inseridas")
   } catch (error) {
     console.error("Erro ao verificar/criar restrição padrão:", error);
   }
