@@ -7,6 +7,7 @@ import { getRestrictionController, updateRestrictionController } from "./control
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
 import { createRestrictionsDefault } from "./tools/automaticCreations.js";
+import { addDefaultMessage, deleteDefaultMessage, getDefaultMessages, updateMessages } from "./controllers/defaultMessagesCotrollers.js";
 
 const PORT = process.env.PORT || 5002
 const app = express()
@@ -19,6 +20,11 @@ app.get("/whatsapp/status/", getStatusController);
 
 app.get("/whatsapp/restriction/", getRestrictionController)
 app.put("/whatsapp/restriction/:id", updateRestrictionController)
+
+app.get("/whatsapp/default_messages/", getDefaultMessages)
+app.put("/whatsapp/default_messages/:id", updateMessages)
+app.post("/whatsapp/default_messages/", addDefaultMessage)
+app.delete("/whatsapp/default_messages/:id", deleteDefaultMessage)
 
 
 app.use(handleErrorMiddleware);
