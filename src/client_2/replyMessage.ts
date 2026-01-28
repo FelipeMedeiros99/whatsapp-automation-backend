@@ -10,7 +10,7 @@ import { Message, Whatsapp } from "@wppconnect-team/wppconnect";
 // const gree = "559891402255"
 // const felipe = "559887835523"
 // const leo = "559884786375"
-const vivi = "559899066813"
+// const vivi = "559899066813"
 
 export default async function replyMessage(message: Message, client: Whatsapp) {
 
@@ -87,7 +87,7 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
       return;
   }
 
-  if (!isMe && (messageFrom.includes("@c.us") || messageFrom.includes("@lid")) && contentMessage && messageFrom.includes(vivi)) {
+  if (!isMe && (messageFrom.includes("@c.us") || messageFrom.includes("@lid")) && contentMessage) {
     const restrictionDelayPromise = prisma.restrictions.findUnique({where: {title: "responseDelay"}})
     const transferPhrasePromise = prisma.restrictions.findUnique({where: {title: "transferPhrase"}})
 
