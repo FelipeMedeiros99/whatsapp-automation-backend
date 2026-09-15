@@ -136,6 +136,8 @@ export default async function iaResponse(userMessage: string = "") {
         .join("\n\n");
     }
 
+    console.log({ userMessage, rulesTextToInject });
+
     // 4. Montagem do Contexto Final para Geração
     const finalContent = `
 # DIRETRIZ CRÍTICA DE TRANSFERÊNCIA

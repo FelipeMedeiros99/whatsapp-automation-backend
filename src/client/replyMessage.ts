@@ -179,8 +179,8 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
 
           const messageContext = messagesData
             ?.map(
-              (msg: { from: string; text: string }) =>
-                `${msg.from}: ${msg.text}`,
+              (msg: { date: Date; from: string; text: string }) =>
+                `${msg.from} (${msg.date}): ${msg.text}`,
             )
             .join("\n");
           const iaResponsePromise = iaResponse(messageContext) || "";
