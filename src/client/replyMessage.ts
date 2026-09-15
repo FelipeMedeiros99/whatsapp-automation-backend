@@ -6,6 +6,8 @@ import { createMessage, findMessage } from "../repository/message.js";
 import iaResponse from "../iaResponse/iaResponse.js";
 import prisma from "../config/index.js";
 import { Message, Whatsapp } from "@wppconnect-team/wppconnect";
+import { getRestrictionByTitle } from "../repository/geminiCrud.js";
+import { Restrictions } from "@prisma/client";
 
 // const gree = "559891402255"
 // const felipe = "559887835523"
@@ -13,6 +15,15 @@ import { Message, Whatsapp } from "@wppconnect-team/wppconnect";
 // const vivi = "559899066813"
 
 export default async function replyMessage(message: Message, client: Whatsapp) {
+  // CONSTS
+  // const createUser = async () => {};
+
+  const isMe = message.sender.isMe;
+  const contentMessage = message.body || "";
+  const messageTo = message.to;
+  const messageFrom = message.from;
+
+  // FUNCTIONS
   const sendMessage = async (text: string, number: string = messageFrom) => {
     try {
       await client.sendText(number, text);
@@ -21,19 +32,23 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
     }
   };
 
-  const isMe = message.sender.isMe;
-  const contentMessage = message.body || "";
-  const messageTo = message.to;
-  const messageFrom = message.from;
-  console.log({ message });
+  const validIfResponseHasTransferPhrase = (
+    transferPhraseModel: Restrictions | null,
+    contentMessage: string,
+  ) => {
+    const transferPhrase =
+      transferPhraseModel?.restriction?.toLocaleLowerCase() || "";
+    const formatedMessage = contentMessage?.toLocaleLowerCase();
+    const isTransferPhrase =
+      transferPhrase && formatedMessage?.includes(transferPhrase);
+    return isTransferPhrase;
+  };
 
   console.log({ isMe, contentMessage, messageTo, messageFrom });
 
   if (isMe) {
     const clientChatId = messageTo;
-    const transferPhrasePromise = prisma.restrictions.findUnique({
-      where: { title: "transferPhrase" },
-    });
+    const transferPhrase = await getRestrictionByTitle("transferPhrase");
 
     let userData = await createUser({
       number: clientChatId,
@@ -44,21 +59,19 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
       lastMessageFromBot: false,
       timeoutId: null,
     });
-
     if (!userData) return;
 
-    // transfer to attendent logic
-    const transferPhrase = await transferPhrasePromise;
-    if (
-      transferPhrase?.restriction &&
-      contentMessage
-        .toLocaleLowerCase()
-        ?.includes(transferPhrase?.restriction?.toLocaleLowerCase())
-    ) {
+    const hasTransferPhrase = validIfResponseHasTransferPhrase(
+      transferPhrase,
+      contentMessage,
+    );
+
+    if (hasTransferPhrase) {
       const updateuserPromise = updateUser(clientChatId, {
         isBotStoped: true,
         lastMessageFromBot: false,
       });
+
       const createMessagePromise = createMessage({
         userNumber: clientChatId,
         text: contentMessage,

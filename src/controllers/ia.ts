@@ -31,7 +31,7 @@ export async function updateRestriction(req: Request, res: Response) {
     if (!id || !data)
       throw { message: "Id e data são obrigatórios", statuscode: 400 };
     const restriction = await updateRestrictionRepository(Number(id), data);
-    res.send(restriction).sendStatus(200);
+    res.status(200).send(restriction);
     return;
   } catch (e) {
     throw { message: "Erro ao buscar restrição", statusCode: 500, error: e };
@@ -41,7 +41,7 @@ export async function updateRestriction(req: Request, res: Response) {
 export async function getUsers(req: Request, res: Response) {
   try {
     const users = await getAllUsers();
-    res.send(users).sendStatus(200);
+    res.status(200).send(users);
   } catch (e) {
     throw { message: "Erro ao buscar usuários", statusCode: 500, error: e };
   }
