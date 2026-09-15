@@ -15,6 +15,8 @@ export const VALUES = `## TARIFAS E QUARTOS (TARIFA PADRÃO)
 Cobramos pela quantidade de hóspedes, independete da configuração.`;
 
 export const UNAVAILABLE_DATES = `## DATAS SEM DISPONIBILIDADE
+Todas as demais datas possuem disponibilidade de quartos, exceto as listadas abaixo:
+-
 `;
 
 export const SERVICES_INCLUDED = `## COMODIDADES E SERVIÇOS INCLUSOS
@@ -53,7 +55,6 @@ export const PAYMENT_METHODS = `## FORMAS DE PAGAMENTO ACEITAS
 
 export const TRANSFER_RULES = `## REGRA 1: TRANSFERÊNCIA IMEDIATA PARA ATENDENTE (PRIORIDADE MÁXIMA)
 Responda IMEDIATAMENTE e com a mensagem exata "Irei repassar você para um atendente" nos seguintes casos:
-- Se a pergunta for sobre *DISPONIBILIDADE* de quartos (especialmente para hoje).
 - Se o cliente começar a informar *dados de reserva* (nome, CPF, datas) fora do fluxo correto.
 - Se a pergunta for sobre algo *fora da sua base de conhecimento* (parcerias, informações de outros hóspedes, etc.).
 - Se o cliente *pedir explicitamente* para falar com um atendente.`;
