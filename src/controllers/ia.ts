@@ -5,6 +5,7 @@ import {
   getUsers as getAllUsers,
   toggleActiveIAResponse as updateActiveIAResponse,
   updateRestriction as updateRestrictionRepository,
+  deleteNumber as deleteNum,
 } from "../repository/geminiCrud.js";
 import { order } from "@wppconnect/wa-js";
 
@@ -52,4 +53,13 @@ export async function toggleActiveIAResponse(req: Request, res: Response) {
   } catch (e) {
     throw { message: "Erro ao buscar restrição", statusCode: 500, error: e };
   }
+}
+
+export async function deleteUser(req: Request, res: Response) {
+  try {
+    const number = req.params.number;
+    if (!number) throw { message: "Número é obrigatório", statuscode: 400 };
+    await deleteNum(number);
+    return;
+  } catch (e) {}
 }

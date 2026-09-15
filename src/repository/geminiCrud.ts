@@ -62,3 +62,19 @@ export async function toggleActiveIAResponse(number: string) {
 
   return await prisma.user.findMany();
 }
+
+export async function deleteNumber(number: string) {
+  const user = await prisma.user.findUnique({
+    where: { number: number },
+  });
+
+  if (!user) {
+    throw new Error("Usuário não encontrado");
+  }
+
+  await prisma.user.delete({
+    where: { number: number },
+  });
+
+  return await prisma.user.findMany();
+}

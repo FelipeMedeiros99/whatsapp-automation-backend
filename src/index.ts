@@ -8,6 +8,7 @@ import {
   getStatus,
 } from "./controllers/conection.js";
 import {
+  deleteUser,
   getRestriction,
   getUsers,
   toggleActiveIAResponse,
@@ -46,6 +47,7 @@ app.delete(`${baseUrl}default_messages/:id`, deleteDefaultMessage);
 
 app.get(`${baseUrl}users/`, getUsers);
 app.put(`${baseUrl}users/:number`, toggleActiveIAResponse);
+app.delete(`${baseUrl}users/:number`, deleteUser);
 
 app.use(handleErrorMiddleware);
 
