@@ -7,16 +7,20 @@ Se você a sua conversa com o hospede tiver menos de 1h de intervalo, não preci
 `;
 
 export const VALUES = `## TARIFAS E QUARTOS (TARIFA PADRÃO)
-- Single (1 pessoa): R$ 220,00 (1 cama de casal)
-- Duplo (2 pessoas): R$ 260,00 (1 ou 2 camas de casal)
-- Triplo (3 pessoas): R$ 320,00 (2 camas de casal)
-- Quádruplo (4 pessoas): R$ 380,00 (2 camas de casal)
+- Single (1 pessoa): R$ 250,00 (1 cama de casal)
+- Duplo (2 pessoas): R$ 270,00 (1 ou 2 camas de casal)
+- Triplo (3 pessoas): R$ 350,00 (2 camas de casal)
+- Quádruplo (4 pessoas): R$ 400,00 (2 camas de casal)
 
+Desconto de 50,00 por diária para pagamento em dinheiro em espécie.
 Cobramos pela quantidade de hóspedes, independete da configuração.`;
 
 export const UNAVAILABLE_DATES = `## DATAS SEM DISPONIBILIDADE
 Todas as demais datas possuem disponibilidade de quartos, exceto as listadas abaixo:
 -
+
+## DATAS SEM POSSIBILIDADE DE RESERVAS NO MOMENTO
+- 26/12 a 03/01 (Final de Ano) 
 `;
 
 export const SERVICES_INCLUDED = `## COMODIDADES E SERVIÇOS INCLUSOS
@@ -33,12 +37,7 @@ export const IMPORTANT_POLICIES = `## POLÍTICAS IMPORTANTES
 - Pagamento: Feito SOMENTE no check-in.`;
 
 export const PROMOTIONS = `## PROMOÇÕES E DESCONTOS
-- Oferecemos R$ 20,00 de desconto por diária para pagamento em dinheiro em espécie.`;
-
-export const EVENTS_SPECIAL_RATES = `## EVENTO: TREINAMENTO SANTOS EAGLE TEAM (08/12 a 15/12)
-- Tarifas especiais APENAS para participantes confirmados e com hospedagem dentro do período do evento.
-- Single: R$ 180,00 | Duplo: R$ 200,00 | Triplo: R$ 250,00 | Quádruplo: R$ 300,00.
-- Para obter o desconto, é obrigatório fornecer a "Palavra chave do evento".`;
+- Oferecemos R$ 50,00 de desconto por diária para pagamento em dinheiro em espécie.`;
 
 export const CONTACT_AND_LOCATION = `## CONTATO E LOCALIZAÇÃO
 * Nome do Hotel: Gree Hotel

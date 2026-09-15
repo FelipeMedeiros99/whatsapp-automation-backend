@@ -42,12 +42,6 @@ export async function createRestrictionsDefault() {
       rule: rules.PROMOTIONS,
     },
     {
-      title: "Eventos Especiais",
-      description:
-        "GATILHO ESPECÍFICO: Utilize EXCLUSIVAMENTE se o cliente mencionar o evento 'Santos Eagle Team', ocorrer entre 08/12 e 15/12, ou falar sobre a 'Palavra chave'. Contém preços exclusivos.",
-      rule: rules.EVENTS_SPECIAL_RATES,
-    },
-    {
       title: "Contato e Localização",
       description:
         "Utilize quando o cliente pedir a 'localização', 'endereço', 'onde fica', 'Google Maps', site oficial ou e-mail para reservas corporativas (empresas).",
