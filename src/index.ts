@@ -3,14 +3,11 @@ import cors from "cors";
 import "dotenv/config";
 
 import {
-  connectController,
-  disconnectClientController,
-  getStatusController,
-} from "./controllers/conectionControllers.js";
-import {
-  getRestrictionController,
-  updateRestrictionController,
-} from "./controllers/geminiControllers.js";
+  connect,
+  disconnectClient,
+  getStatus,
+} from "./controllers/conection.js";
+import { getRestriction, updateRestriction } from "./controllers/ia.js";
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
 import { createRestrictionsDefault } from "./tools/automaticCreations.js";
@@ -19,26 +16,30 @@ import {
   deleteDefaultMessage,
   getDefaultMessages,
   updateMessages,
-} from "./controllers/defaultMessagesCotrollers.js";
+} from "./controllers/message.js";
 
 const PORT = process.env.PORT || 5002;
 const app = express();
 app.use(cors());
 app.use(json());
 
+const baseUrl = process.env.BASE_URL || "/whatsapp/";
+
 app.get("/", (req, res) => res.send("Hello World!"));
 
-app.get("/whatsapp/connect/", connectController);
-app.get("/whatsapp/disconnect/", disconnectClientController);
-app.get("/whatsapp/status/", getStatusController);
+app.get(`${baseUrl}connect/`, connect);
+app.get(`${baseUrl}disconnect/`, disconnectClient);
+app.get(`${baseUrl}status/`, getStatus);
 
-app.get("/whatsapp/restriction/", getRestrictionController);
-app.put("/whatsapp/restriction/:id", updateRestrictionController);
+app.get(`${baseUrl}restriction/`, getRestriction);
+app.put(`${baseUrl}restriction/:id`, updateRestriction);
 
-app.get("/whatsapp/default_messages/", getDefaultMessages);
-app.put("/whatsapp/default_messages/:id", updateMessages);
-app.post("/whatsapp/default_messages/", addDefaultMessage);
-app.delete("/whatsapp/default_messages/:id", deleteDefaultMessage);
+app.get(`${baseUrl}default_messages/`, getDefaultMessages);
+app.put(`${baseUrl}default_messages/:id`, updateMessages);
+app.post(`${baseUrl}default_messages/`, addDefaultMessage);
+app.delete(`${baseUrl}default_messages/:id`, deleteDefaultMessage);
+
+// app.put(`${baseUrl}toggle_active_chat/:id`, updateContact);
 
 app.use(handleErrorMiddleware);
 

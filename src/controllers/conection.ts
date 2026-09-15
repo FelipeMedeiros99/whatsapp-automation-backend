@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import service2 from "../client/index.js";
 
-export async function connectController(req: Request, res: Response) {
+export async function connect(req: Request, res: Response) {
   try {
     const qrCode = await service2.getQrCode();
     console.log(qrCode);
@@ -12,7 +12,7 @@ export async function connectController(req: Request, res: Response) {
   }
 }
 
-export async function getStatusController(req: Request, res: Response) {
+export async function getStatus(req: Request, res: Response) {
   try {
     // const status = client.getStatus()
     const state = service2.isLoged;
@@ -23,7 +23,7 @@ export async function getStatusController(req: Request, res: Response) {
   }
 }
 
-export async function disconnectClientController(req: Request, res: Response) {
+export async function disconnectClient(req: Request, res: Response) {
   try {
     const disconnectResponse = await service2.destroyClient();
     res.send(disconnectResponse);
