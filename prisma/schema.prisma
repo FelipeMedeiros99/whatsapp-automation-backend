@@ -37,6 +37,14 @@ model Message{
   @@map("message")
 }
 
+model BotRules{
+  id                  Int @id @default(autoincrement())
+  title               String @unique
+  description         String?
+  rule                String?
+
+  @@map("bot_rules")
+}
 
 model Restrictions{
   id                  Int @id @default(autoincrement())
