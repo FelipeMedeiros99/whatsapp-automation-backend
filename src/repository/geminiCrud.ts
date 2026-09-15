@@ -1,4 +1,4 @@
-import { Restrictions } from "@prisma/client";
+import { Restrictions, BotRules } from "@prisma/client";
 import prisma from "../config/index.js";
 
 export async function createRestriction(title: string, text: string) {
@@ -77,4 +77,44 @@ export async function deleteNumber(number: string) {
   });
 
   return await prisma.user.findMany();
+}
+
+// BOT RULES
+
+export async function createBotRuleRepository(data: {
+  title: string;
+  description?: string;
+  rule?: string;
+}) {
+  return await prisma.botRules.create({
+    data,
+  });
+}
+
+export async function getAllBotRulesRepository() {
+  return await prisma.botRules.findMany({
+    orderBy: { id: "asc" }, // Mantém a ordem de criação ou precedência
+  });
+}
+
+export async function getBotRuleByIdRepository(id: number) {
+  return await prisma.botRules.findUnique({
+    where: { id },
+  });
+}
+
+export async function updateBotRuleRepository(
+  id: number,
+  data: Partial<BotRules>,
+) {
+  return await prisma.botRules.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteBotRuleRepository(id: number) {
+  return await prisma.botRules.delete({
+    where: { id },
+  });
 }

@@ -13,6 +13,11 @@ import {
   getUsers,
   toggleActiveIAResponse,
   updateRestriction,
+  createBotRule,
+  getBotRules,
+  getBotRuleById,
+  updateBotRule,
+  deleteBotRule,
 } from "./controllers/ia.js";
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
@@ -48,6 +53,15 @@ app.delete(`${baseUrl}default_messages/:id`, deleteDefaultMessage);
 app.get(`${baseUrl}users/`, getUsers);
 app.put(`${baseUrl}users/:number`, toggleActiveIAResponse);
 app.delete(`${baseUrl}users/:number`, deleteUser);
+
+// Criação e Listagem operam na raiz do recurso
+app.post(`${baseUrl}bot-rules/`, createBotRule);
+app.get(`${baseUrl}bot-rules/`, getBotRules);
+
+// Leitura, Atualização e Deleção operam em um item específico via :id
+app.get(`${baseUrl}bot-rules/:id`, getBotRuleById);
+app.put(`${baseUrl}bot-rules/:id`, updateBotRule);
+app.delete(`${baseUrl}bot-rules/:id`, deleteBotRule);
 
 app.use(handleErrorMiddleware);
 
