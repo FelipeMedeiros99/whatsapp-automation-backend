@@ -83,7 +83,7 @@ export async function createRestrictionsDefault() {
     {
       title: "historyLimit",
       restriction: null,
-      restrictionNumber: 8,
+      restrictionNumber: 4,
     },
     {
       title: "transferPhrase",

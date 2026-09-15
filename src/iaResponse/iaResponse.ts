@@ -120,6 +120,7 @@ export default async function iaResponse(userMessage: string = "") {
 
     // 3. Busca no banco o texto completo (coluna `rule`) Apenas dos tópicos selecionados
     if (selectedIds.length > 0) {
+      if (!selectedIds.includes(1)) selectedIds.push(1); // Garantindo que o Estilo Global (ID 1) esteja sempre presente
       const selectedRules = await prisma.botRules.findMany({
         where: { id: { in: selectedIds } },
       });
@@ -128,9 +129,9 @@ export default async function iaResponse(userMessage: string = "") {
         .join("\n\n");
     } else {
       console.log(
-        "Nenhum tópico relevante encontrado. Conversa genérica de saudação ou encerramento. enviando todas as regras de estilo e boas práticas.",
+        "Nenhum tópico relevante encontrado. Conversa genérica de saudação ou encerramento.",
       );
-      const allRules = await prisma.botRules.findMany(); // Supondo que o ID 1 seja o estilo global
+      const allRules = await prisma.botRules.findMany({ where: { id: 1 } }); // Supondo que o ID 1 seja o estilo global
       rulesTextToInject = allRules
         .map((r) => `[${r.title}]\n${r.rule}`)
         .join("\n\n");
