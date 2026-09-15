@@ -142,19 +142,18 @@ export async function createRestrictionsDefault() {
       }),
     );
 
-    await Promise.all(
-      initialBotRules.map(async (rule) => {
-        console.log("inserindo as regras do hotel no banco...");
-        await prisma.botRules.upsert({
-          where: {
-            title: rule.title,
-          },
-          update: {},
-          create: rule,
-        });
-        console.log("regras criadas");
-      }),
-    );
+    console.log("Inserindo as regras do hotel no banco sequencialmente...");
+    for (const rule of initialBotRules) {
+      await prisma.botRules.upsert({
+        where: {
+          title: rule.title,
+        },
+        update: {},
+        create: rule,
+      });
+      console.log(`Regra criada/verificada: ${rule.title}`);
+    }
+    console.log("Todas as regras foram inseridas com sucesso.");
 
     console.log("Inserindo mensagens de confirmação de reserva padrão");
     const messages = await prisma.defaultMessages.findMany();
