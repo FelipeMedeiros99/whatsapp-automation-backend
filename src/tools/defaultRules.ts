@@ -12,6 +12,9 @@ export const VALUES = `## TARIFAS E QUARTOS (TARIFA PADRÃO)
 
 Cobramos pela quantidade de hóspedes, independete da configuração.`;
 
+export const UNAVAILABLE_DATES = `## DATAS SEM DISPONIBILIDADE
+`;
+
 export const SERVICES_INCLUDED = `## COMODIDADES E SERVIÇOS INCLUSOS
 - Café da manhã, Wi-Fi e Piscina (6h-18h) inclusos.
 - Garagem: Rotativa com vagas limitadas.`;

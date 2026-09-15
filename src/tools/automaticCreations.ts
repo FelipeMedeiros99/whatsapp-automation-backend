@@ -18,6 +18,12 @@ export async function createRestrictionsDefault() {
       rule: rules.VALUES,
     },
     {
+      title: "Datas Sem Disponibilidade (Sold Out)",
+      description:
+        "GATILHO DE LOTAÇÃO: Utilize SEMPRE que o cliente informar uma data específica para reserva ou perguntar se 'tem vaga', 'quarto disponível', 'tem disponibilidade' ou 'está lotado'. Contém a lista exata de dias em que o hotel NÃO tem mais quartos.",
+      rule: rules.UNAVAILABLE_DATES, // Crie esta nova constante (veja abaixo)
+    },
+    {
       title: "Serviços Inclusos",
       description:
         "Utilize para responder dúvidas sobre o que tem no hotel, cortesias, café da manhã, internet (Wi-Fi), uso da piscina e disponibilidade de garagem/estacionamento.",
