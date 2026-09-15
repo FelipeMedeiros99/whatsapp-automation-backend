@@ -7,7 +7,12 @@ import {
   disconnectClient,
   getStatus,
 } from "./controllers/conection.js";
-import { getRestriction, updateRestriction } from "./controllers/ia.js";
+import {
+  getRestriction,
+  getUsers,
+  toggleActiveIAResponse,
+  updateRestriction,
+} from "./controllers/ia.js";
 
 import { handleErrorMiddleware } from "./middlewares/handleErrorMiddleware.js";
 import { createRestrictionsDefault } from "./tools/automaticCreations.js";
@@ -39,7 +44,8 @@ app.put(`${baseUrl}default_messages/:id`, updateMessages);
 app.post(`${baseUrl}default_messages/`, addDefaultMessage);
 app.delete(`${baseUrl}default_messages/:id`, deleteDefaultMessage);
 
-// app.put(`${baseUrl}toggle_active_chat/:id`, updateContact);
+app.get(`${baseUrl}users/`, getUsers);
+app.put(`${baseUrl}users/:number`, toggleActiveIAResponse);
 
 app.use(handleErrorMiddleware);
 

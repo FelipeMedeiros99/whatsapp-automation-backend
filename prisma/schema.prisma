@@ -12,6 +12,7 @@ datasource db {
 
 model User{
   number              String  @unique @id
+  name                String?
   timestamp           BigInt
   isBotStoped         Boolean 
   wasWelcome          Boolean       
