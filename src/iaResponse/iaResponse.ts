@@ -164,7 +164,7 @@ ${userMessage}
       const response = await gemini.models.generateContent({
         model: "gemini-3.5-flash",
         contents: finalContent,
-        config: { temperature: 0.9 }, // Levemente criativo para a conversa, mas aderente aos fatos
+        config: { temperature: 0.5 }, // Levemente criativo para a conversa, mas aderente aos fatos
       });
 
       return response.text;
@@ -173,7 +173,7 @@ ${userMessage}
       const response = await deepseek.chat.completions.create({
         messages: [{ role: "system", content: finalContent }],
         model: "deepseek-chat",
-        temperature: 0.3,
+        temperature: 0.5,
       });
 
       return response.choices[0].message.content;
