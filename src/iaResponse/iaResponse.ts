@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GenerateContentResponse, GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 import "dotenv/config";
 import prisma from "../config/index.js"; // Seu Prisma Client
@@ -22,6 +22,15 @@ function getContextDateInfo(): string {
     minute: "2-digit",
   });
 }
+
+const format = (response: string) => {
+  const rawText = response.trim() || "0";
+  const ids = rawText
+    .split(",")
+    .map((str) => parseInt(str.trim(), 10))
+    .filter((num) => !isNaN(num) && num > 0);
+  return ids;
+};
 
 /**
  * ESTÁGIO 1: O Roteador (Extractor)
@@ -54,27 +63,30 @@ ${catalogList}
 # MENSAGENS DA CONVERSA
 ${userMessage}
 `;
-
   try {
-    const response = await gemini.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: routerPrompt,
-      // Forçamos a IA a não ser criativa neste passo de classificação
-      config: { temperature: 0.1 },
-    });
+    try {
+      const response = await gemini.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: routerPrompt,
+        // Forçamos a IA a não ser criativa neste passo de classificação
+        config: { temperature: 0.3 },
+      });
 
-    const rawText = response.text?.trim() || "0";
+      const ids = format(response?.text || "");
+      return ids;
+    } catch (e) {
+      console.warn("Fallback para DeepSeek acionado na etapa de Geração...");
+      const response = await deepseek.chat.completions.create({
+        messages: [{ role: "system", content: routerPrompt }],
+        model: "deepseek-chat",
+        temperature: 0.3,
+      });
 
-    // Tratamento defensivo: divide pela vírgula, limpa espaços, converte para número e filtra NaNs ou zeros
-    const ids = rawText
-      .split(",")
-      .map((str) => parseInt(str.trim(), 10))
-      .filter((num) => !isNaN(num) && num > 0);
-
-    return ids;
+      return format(response.choices[0].message.content || "");
+    }
   } catch (e) {
-    console.error("Erro no roteador (Gemini):", e);
-    return []; // Em caso de erro catastrófico na extração, retorna vazio para não travar
+    console.error("Erro crítico na extração de IDs relevantes:", e);
+    return []; // Fallback gracioso: Nenhum tópico relevante encontrado
   }
 }
 
@@ -85,14 +97,12 @@ ${userMessage}
 export default async function iaResponse(userMessage: string = "") {
   try {
     // 1. Busca diretrizes fixas essenciais e o catálogo de regras (somos rápidos aqui porque pegamos apenas os metadados das regras)
-    const [mainPromptData, transferPhraseData, allRulesMetas] =
-      await Promise.all([
-        prisma.restrictions.findUnique({ where: { title: "mainPrompt" } }),
-        prisma.restrictions.findUnique({ where: { title: "transferPhrase" } }),
-        prisma.botRules.findMany({
-          select: { id: true, title: true, description: true },
-        }), // Otimização: Não traz a coluna `rule` (texto completo) ainda
-      ]);
+    const [transferPhraseData, allRulesMetas] = await Promise.all([
+      prisma.restrictions.findUnique({ where: { title: "transferPhrase" } }),
+      prisma.botRules.findMany({
+        select: { id: true, title: true, description: true },
+      }), // Otimização: Não traz a coluna `rule` (texto completo) ainda
+    ]);
 
     // O Estilo de Resposta Global deve SEMPRE estar presente. Assumimos que o ID 1 (ou pelo título) seja o estilo global.
     // DICA: O ideal é ter a diretriz de estilo fixa no mainPrompt, mas se ela estiver no BotRules, nós a garantimos aqui.
@@ -116,12 +126,18 @@ export default async function iaResponse(userMessage: string = "") {
       rulesTextToInject = selectedRules
         .map((r) => `[${r.title}]\n${r.rule}`)
         .join("\n\n");
+    } else {
+      console.log(
+        "Nenhum tópico relevante encontrado. Conversa genérica de saudação ou encerramento. enviando todas as regras de estilo e boas práticas.",
+      );
+      const allRules = await prisma.botRules.findMany(); // Supondo que o ID 1 seja o estilo global
+      rulesTextToInject = allRules
+        .map((r) => `[${r.title}]\n${r.rule}`)
+        .join("\n\n");
     }
 
     // 4. Montagem do Contexto Final para Geração
     const finalContent = `
-${mainPromptData?.restriction || "Você é o assistente virtual do Gree Hotel."}
-
 # DIRETRIZ CRÍTICA DE TRANSFERÊNCIA
 Se for necessário acionar um humano, use a exata frase: ${transferPhraseData?.restriction || "Irei repassar você para um atendente"}
 
@@ -148,7 +164,7 @@ ${userMessage}
       const response = await gemini.models.generateContent({
         model: "gemini-3.5-flash",
         contents: finalContent,
-        config: { temperature: 0.3 }, // Levemente criativo para a conversa, mas aderente aos fatos
+        config: { temperature: 0.9 }, // Levemente criativo para a conversa, mas aderente aos fatos
       });
 
       return response.text;
