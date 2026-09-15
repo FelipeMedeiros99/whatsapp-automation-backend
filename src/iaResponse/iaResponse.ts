@@ -94,7 +94,10 @@ ${userMessage}
  * ESTÁGIO 2: O Gerador (Responder)
  * Orquestra todo o fluxo, une os dados e gera a resposta final para o WhatsApp.
  */
-export default async function iaResponse(userMessage: string = "") {
+export default async function iaResponse(
+  userMessage: string = "",
+  wasWelcome: boolean = false,
+) {
   try {
     // 1. Busca diretrizes fixas essenciais e o catálogo de regras (somos rápidos aqui porque pegamos apenas os metadados das regras)
     const [transferPhraseData, allRulesMetas] = await Promise.all([
@@ -137,7 +140,9 @@ export default async function iaResponse(userMessage: string = "") {
         .join("\n\n");
     }
 
-    console.log({ userMessage, rulesTextToInject });
+    const noWelcomeAgain = `# CONTROLE DE SAUDAÇÃO (OBRIGATÓRIO)
+A conversa já está em andamento. É ESTRITAMENTE PROIBIDO iniciar sua resposta com saudações (como "Olá", "Bom dia", "Boa tarde", "Boa noite", "Seja bem vindo").
+Vá DIRETAMENTE ao ponto e responda à dúvida do hóspede de forma natural.`;
 
     // 4. Montagem do Contexto Final para Geração
     const finalContent = `
@@ -146,6 +151,7 @@ Se for necessário acionar um humano, use a exata frase: ${transferPhraseData?.r
 
 # INFORMAÇÃO TEMPORAL
 Use a data atual para cálculo de datas: ${getContextDateInfo()}
+${wasWelcome ? noWelcomeAgain : "O usuário ainda não recebeu a mensagem de boas-vindas."}
 
 # CONHECIMENTO ESPECÍFICO RECUPERADO PARA ESTE ATENDIMENTO
 As informações abaixo contêm as políticas e tarifas corretas aplicáveis à dúvida do cliente.

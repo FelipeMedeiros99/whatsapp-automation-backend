@@ -183,7 +183,8 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
                 `${msg.from} (${msg.date}): ${msg.text}`,
             )
             .join("\n");
-          const iaResponsePromise = iaResponse(messageContext) || "";
+          const iaResponsePromise =
+            iaResponse(messageContext, userData.wasWelcome) || "";
 
           if (messagesData[messagesData.length - 1]?.from === "client") {
             const responseFromIa = (await iaResponsePromise) || "";
