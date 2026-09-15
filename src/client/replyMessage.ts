@@ -108,12 +108,12 @@ export default async function replyMessage(message: Message, client: Whatsapp) {
     }
 
     if (contentMessage === defaultMessages.finish && userData.isBotStoped) {
-      await updateUser(clientChatId, { isBotStoped: false });
+      await updateUser(clientChatId, { isBotStoped: false, wasWelcome: true });
       return;
     }
 
     if (!userData.isBotStoped) {
-      await updateUser(clientChatId, { isBotStoped: true });
+      await updateUser(clientChatId, { isBotStoped: true, wasWelcome: true });
       console.log(`Bot PAUSADO para o chat: ${clientChatId}`);
     }
     await createMessage({
