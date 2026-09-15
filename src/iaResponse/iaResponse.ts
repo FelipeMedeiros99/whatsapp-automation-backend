@@ -1,57 +1,169 @@
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
-import "dotenv/config"
-import prisma from "../config/index.js";
+import "dotenv/config";
+import prisma from "../config/index.js"; // Seu Prisma Client
 
-// console.log(process.env.GEMINI_API_KEY)
+// Inicialização dos provedores
 const gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const deepseek = new OpenAI({baseURL: 'https://api.deepseek.com', apiKey: process.env.DEEPSEEK_API_KEY});
+const deepseek = new OpenAI({
+  baseURL: "https://api.deepseek.com",
+  apiKey: process.env.DEEPSEEK_API_KEY,
+});
 
-export default async function iaResponse(userMessage?: string) {
+// Função auxiliar para formatar a data atual e fornecer contexto temporal dinâmico
+function getContextDateInfo(): string {
+  const today = new Date();
+  return today.toLocaleDateString("pt-BR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * ESTÁGIO 1: O Roteador (Extractor)
+ * Função responsável exclusivamente por analisar a conversa e extrair os IDs dos tópicos necessários.
+ */
+async function extractRelevantRuleIds(
+  userMessage: string,
+  availableRules: { id: number; title: string; description: string | null }[],
+): Promise<number[]> {
+  // Construção do catálogo (apenas título e descrição, sem o texto completo da regra para economizar tokens e evitar confusão)
+  const catalogList = availableRules
+    .map((r) => `[ID: ${r.id}] ${r.title} - ${r.description}`)
+    .join("\n");
+
+  const routerPrompt = `
+Você é um classificador de intenção de atendimento de hotel.
+Sua única função é ler as últimas mensagens do usuário e identificar quais tópicos da nossa base de conhecimento contêm as informações necessárias para que outro assistente formule uma resposta completa.
+
+# CATÁLOGO DE TÓPICOS DISPONÍVEIS (Base de Conhecimento)
+${catalogList}
+
+# INSTRUÇÕES CRÍTICAS
+1. Analise a conversa abaixo.
+2. Identifique quais tópicos do catálogo são necessários para responder à última mensagem ou intenção principal.
+3. Se a intenção for clara, escolha apenas os tópicos relevantes.
+4. Você deve retornar UNICA E EXCLUSIVAMENTE uma lista de IDs numéricos separados por vírgula. 
+5. NÃO ADICIONE NENHUM TEXTO, EXPLICAÇÃO OU FORMATAÇÃO (sem aspas, sem colchetes, sem markdown). Apenas os números. (Exemplo de resposta esperada: 1, 4, 7).
+6. Se o usuário estiver apenas saudando (ex: "Oi", "Bom dia") ou agradecendo, e não demandar nenhuma regra específica, retorne apenas o número 0.
+
+# MENSAGENS DA CONVERSA
+${userMessage}
+`;
+
   try {
-    const mainPromptPromise = prisma.restrictions.findUnique({where: {title: "mainPrompt"}});
-    const transferPhrasePromise = prisma.restrictions.findUnique({where: {title: "transferPhrase"}})
+    const response = await gemini.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: routerPrompt,
+      // Forçamos a IA a não ser criativa neste passo de classificação
+      config: { temperature: 0.1 },
+    });
 
-    const [mainPrompt, transferPhrase] = await Promise.all([mainPromptPromise, transferPhrasePromise]);
+    const rawText = response.text?.trim() || "0";
 
+    // Tratamento defensivo: divide pela vírgula, limpa espaços, converte para número e filtra NaNs ou zeros
+    const ids = rawText
+      .split(",")
+      .map((str) => parseInt(str.trim(), 10))
+      .filter((num) => !isNaN(num) && num > 0);
 
-    const today = new Date()
-    const localeDateFormat = today.toLocaleDateString("pt-BR", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
-    
-    const content = `
-      ${mainPrompt?.restriction}
-      # *FRASE CHAVE PARA TRANSFERIR PARA ATENDENTE:* ${transferPhrase?.restriction}
+    return ids;
+  } catch (e) {
+    console.error("Erro no roteador (Gemini):", e);
+    return []; // Em caso de erro catastrófico na extração, retorna vazio para não travar
+  }
+}
 
-      # INFORMAÇÃO DE DATA
-      use a data atual para se basear com relação aos dias da semana: ${localeDateFormat}
+/**
+ * ESTÁGIO 2: O Gerador (Responder)
+ * Orquestra todo o fluxo, une os dados e gera a resposta final para o WhatsApp.
+ */
+export default async function iaResponse(userMessage: string = "") {
+  try {
+    // 1. Busca diretrizes fixas essenciais e o catálogo de regras (somos rápidos aqui porque pegamos apenas os metadados das regras)
+    const [mainPromptData, transferPhraseData, allRulesMetas] =
+      await Promise.all([
+        prisma.restrictions.findUnique({ where: { title: "mainPrompt" } }),
+        prisma.restrictions.findUnique({ where: { title: "transferPhrase" } }),
+        prisma.botRules.findMany({
+          select: { id: true, title: true, description: true },
+        }), // Otimização: Não traz a coluna `rule` (texto completo) ainda
+      ]);
 
-      # ÚLTIMAS MENSAGENS DA CONVERSA
-      * As mensagens do tipo from: me, indicam mensagens enviadas por mim
-      * as mensagens do tipo from: client, indicam mensagens enviadas pelo cliente
-      * As mensagens do tipo from: bot, indicam mensagens enviadas por você
-      * A ordem das mensagens está da mais antiga para a mais nova.
-      * A última mensagem deve ser o foco da sua resposta
-      * Se não for a primeira interação de vocês, não é necessário se apresentar para o cliente.
-      ${userMessage}
-      `
-    try{
+    // O Estilo de Resposta Global deve SEMPRE estar presente. Assumimos que o ID 1 (ou pelo título) seja o estilo global.
+    // DICA: O ideal é ter a diretriz de estilo fixa no mainPrompt, mas se ela estiver no BotRules, nós a garantimos aqui.
+    let rulesTextToInject = "";
+
+    // 2. Aciona o Roteador para extrair IDs relevantes (Passo 1 do RAG)
+    const selectedIds = await extractRelevantRuleIds(
+      userMessage,
+      allRulesMetas,
+    );
+
+    console.log(
+      `[RAG Router] IDs selecionados para contexto: ${selectedIds.length > 0 ? selectedIds.join(", ") : "Nenhum (Conversa genérica)"}`,
+    );
+
+    // 3. Busca no banco o texto completo (coluna `rule`) Apenas dos tópicos selecionados
+    if (selectedIds.length > 0) {
+      const selectedRules = await prisma.botRules.findMany({
+        where: { id: { in: selectedIds } },
+      });
+      rulesTextToInject = selectedRules
+        .map((r) => `[${r.title}]\n${r.rule}`)
+        .join("\n\n");
+    }
+
+    // 4. Montagem do Contexto Final para Geração
+    const finalContent = `
+${mainPromptData?.restriction || "Você é o assistente virtual do Gree Hotel."}
+
+# DIRETRIZ CRÍTICA DE TRANSFERÊNCIA
+Se for necessário acionar um humano, use a exata frase: ${transferPhraseData?.restriction || "Irei repassar você para um atendente"}
+
+# INFORMAÇÃO TEMPORAL
+Use a data atual para cálculo de datas: ${getContextDateInfo()}
+
+# CONHECIMENTO ESPECÍFICO RECUPERADO PARA ESTE ATENDIMENTO
+As informações abaixo contêm as políticas e tarifas corretas aplicáveis à dúvida do cliente.
+Se o conhecimento abaixo estiver vazio, significa que é uma conversa genérica de saudação ou encerramento, e você deve apenas responder polidamente de acordo com o contexto.
+--- INÍCIO DA BASE DE CONHECIMENTO ---
+${rulesTextToInject}
+--- FIM DA BASE DE CONHECIMENTO ---
+
+# HISTÓRICO DE MENSAGENS DA CONVERSA
+* from: me (Mensagens enviadas pelo hotel/você)
+* from: client (Mensagens do cliente)
+* from: bot (Mensagens de fluxos anteriores do assistente)
+A ordem das mensagens é da mais antiga para a mais nova. Foque sua resposta na última mensagem do cliente.
+${userMessage}
+`;
+
+    // 5. Geração da Resposta Final (Com fallback)
+    try {
       const response = await gemini.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: content,
+        model: "gemini-3.5-flash",
+        contents: finalContent,
+        config: { temperature: 0.3 }, // Levemente criativo para a conversa, mas aderente aos fatos
       });
 
       return response.text;
-    }catch(e){
-
+    } catch (e) {
+      console.warn("Fallback para DeepSeek acionado na etapa de Geração...");
       const response = await deepseek.chat.completions.create({
-        messages: [{role: "system", content}],
-        model: "deepseek-chat"
-    });
-    
+        messages: [{ role: "system", content: finalContent }],
+        model: "deepseek-chat",
+        temperature: 0.3,
+      });
+
       return response.choices[0].message.content;
     }
   } catch (e) {
-    console.log(e)
-    return ""
+    console.error("Erro crítico na orquestração da resposta da IA:", e);
+    return "No momento estou passando por uma instabilidade técnica. Irei repassar você para um atendente."; // Fallback gracioso para WhatsApp
   }
 }
